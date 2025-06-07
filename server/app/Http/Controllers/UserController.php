@@ -69,12 +69,10 @@ class UserController extends Controller
         try {
             $user = User::findOrFail($id);
 
-            // Check if authenticated user matches the user to update
             if (auth()->user->id !== $user->id || auth()->user->email !== $user->email) {
                 return response()->json(['error' => 'Unauthorized.'], 403);
             }
 
-            // Update allowed fields
             $user->username = $request->input('username', $user->username);
             $user->email = $request->input('email', $user->email);
             // etc...
