@@ -1,4 +1,3 @@
-// src/components/Homepage.jsx
 import { useState, useEffect } from 'react';
 import { FaChalkboardTeacher, FaSchool, FaUserGraduate, FaSignInAlt } from 'react-icons/fa';
 
