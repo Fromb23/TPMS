@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { FiUpload, FiX, FiFile, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { submitSchoolDocuments } from '../services/submitSchoolDocuments';
 
 const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
   const [files, setFiles] = useState([]);
@@ -7,7 +9,14 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
   const [uploadError, setUploadError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  // Reset state when modal closes
+  const [formData, setFormData] = useState({
+    schoolName: "",
+    schoolAddress: "",
+    schoolContact: "",
+    schoolCounty: "",
+    subjectCombination: "",
+  });
+
   const handleClose = useCallback(() => {
     setFiles([]);
     setIsUploading(false);
@@ -16,43 +25,58 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
     onClose();
   }, [onClose]);
 
-  // Handle file selection
   const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    setFiles(selectedFiles);
+    setFiles(Array.from(e.target.files));
     setUploadError(null);
   };
 
-  // Handle file upload
-  const handleSubmit = async () => {
+  const mutation = useMutation({
+    mutationFn: submitSchoolDocuments,
+    onSuccess: (data) => {
+      setUploadSuccess(true);
+      onUpload(files);
+      setTimeout(handleClose, 2000);
+    },
+    onError: (error) => {
+      setUploadError("Upload failed. Please try again.");
+      setIsUploading(false);
+    },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
     if (files.length === 0) {
-      setUploadError('Please select at least one file');
+      setUploadError("Please select at least one file");
       return;
     }
+
+    const user = localStorage.getItem("user");
+    const userId = user ? JSON.parse(user).id : null;
+
+    if (!userId) {
+      setUploadError("User not authenticated");
+      return;
+    }
+
+    const schoolData = {
+      name: formData.schoolName,
+      address: formData.schoolAddress,
+      contact: formData.schoolContact,
+      county: formData.schoolCounty,
+      subjectCombination: formData.subjectCombination,
+    };
 
     setIsUploading(true);
     setUploadError(null);
 
-    try {
-      // In a real app, you would upload to your backend here
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate upload
-      
-      // Call the onUpload callback with the files
-      onUpload(files);
-      setUploadSuccess(true);
-      
-      // Auto-close after success (optional)
-      setTimeout(handleClose, 2000);
-    } catch (error) {
-      setUploadError(error.message || 'Failed to upload documents');
-    } finally {
-      setIsUploading(false);
-    }
+    mutation.mutate({ userId, schoolData, files });
   };
+
 
   // Get modal content based on upload type
   const getModalContent = () => {
-    switch(type) {
+    switch (type) {
       case 'school-documents':
         return {
           title: 'School Documents Submission',
@@ -60,7 +84,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
           accept: '.pdf',
           multiple: true
         };
-      
+
       case 'scheme-of-work':
         return {
           title: 'Scheme of Work Submission',
@@ -68,7 +92,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
           accept: '.pdf,.doc,.docx',
           multiple: false
         };
-      
+
       case 'lesson-plan':
         return {
           title: 'Lesson Plan Submission',
@@ -76,7 +100,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
           accept: '.pdf,.doc,.docx',
           multiple: false
         };
-      
+
       case 'timetable':
         return {
           title: 'Timetable Submission',
@@ -84,7 +108,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
           accept: '.pdf,.doc,.docx,.xls,.xlsx',
           multiple: false
         };
-      
+
       case 'subject-combination':
         return {
           title: 'Subject Combination',
@@ -92,7 +116,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
           accept: '.pdf,.doc,.docx',
           multiple: false
         };
-      
+
       case 'final-documents':
         return {
           title: 'Final TP Documents',
@@ -100,7 +124,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
           accept: '.pdf,.doc,.docx,.zip',
           multiple: true
         };
-      
+
       default:
         return {
           title: 'Document Upload',
@@ -121,7 +145,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
         {/* Modal Header */}
         <div className="flex justify-between items-center border-b p-4">
           <h3 className="text-lg font-semibold">{title}</h3>
-          <button 
+          <button
             onClick={handleClose}
             className="text-gray-500 hover:text-gray-700"
             disabled={isUploading}
@@ -129,11 +153,11 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
             <FiX size={20} />
           </button>
         </div>
-        
+
         {/* Modal Body */}
         <div className="p-4">
           <p className="mb-4 text-gray-600">{description}</p>
-          
+
           {uploadSuccess ? (
             <div className="bg-green-50 text-green-700 p-3 rounded-md mb-4 flex items-center">
               <FiCheckCircle className="mr-2" />
@@ -141,6 +165,45 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
             </div>
           ) : (
             <>
+              <div className="space-y-4 mb-6">
+                <input
+                  type="text"
+                  placeholder="School Name"
+                  value={formData.schoolName}
+                  onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
+                  className="w-full p-2 border rounded"
+                />
+                <input
+                  type="text"
+                  placeholder="School Address"
+                  value={formData.schoolAddress}
+                  onChange={(e) => setFormData({ ...formData, schoolAddress: e.target.value })}
+                  className="w-full p-2 border rounded"
+                />
+                <input
+                  type="text"
+                  placeholder="School Contact"
+                  value={formData.schoolContact}
+                  onChange={(e) => setFormData({ ...formData, schoolContact: e.target.value })}
+                  className="w-full p-2 border rounded"
+                />
+                <input
+                  type="text"
+                  placeholder="School County"
+                  value={formData.schoolCounty}
+                  onChange={(e) => setFormData({ ...formData, schoolCounty: e.target.value })}
+                  className="w-full p-2 border rounded"
+                />
+                <input
+                  type="text"
+                  placeholder="Subject Combination"
+                  value={formData.subjectCombination}
+                  onChange={(e) => setFormData({ ...formData, subjectCombination: e.target.value })}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* File Upload Area */}
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center mb-4">
                 <label className="cursor-pointer">
                   <div className="flex flex-col items-center justify-center">
@@ -151,32 +214,36 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
                   <input
                     type="file"
                     className="hidden"
-                    onChange={handleFileChange}
+                    onChange={(e) => {
+                      handleFileChange(e);
+                      setFormData({ ...formData, file: e.target.files?.[0] || null });
+                    }}
                     accept={accept}
                     multiple={multiple}
                     disabled={isUploading}
                   />
                 </label>
               </div>
-              
-              {/* Selected files preview */}
-              {files.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium mb-2">Selected files:</h4>
-                  <ul className="space-y-1">
-                    {files.map((file, index) => (
-                      <li key={index} className="flex items-center text-sm">
-                        <FiFile className="mr-2 text-gray-500" />
-                        <span className="truncate">{file.name}</span>
-                        <span className="ml-auto text-xs text-gray-500">
-                          {(file.size / 1024).toFixed(1)} KB
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
+
+              <ul className="space-y-1">
+                {files.map((file, index) => (
+                  <li key={index} className="flex items-center text-sm">
+                    <FiFile className="mr-2 text-gray-500" />
+                    <span
+                      className="truncate text-blue-600 hover:underline cursor-pointer"
+                      onClick={() => {
+                        const url = URL.createObjectURL(file);
+                        window.open(url, '_blank');
+                      }}
+                    >
+                      {file.name}
+                    </span>
+                    <span className="ml-auto text-xs text-gray-500">
+                      {(file.size / 1024).toFixed(1)} KB
+                    </span>
+                  </li>
+                ))}
+              </ul>
               {/* Error message */}
               {uploadError && (
                 <div className="bg-red-50 text-red-700 p-3 rounded-md mb-4 flex items-center">
@@ -187,7 +254,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
             </>
           )}
         </div>
-        
+
         {/* Modal Footer */}
         <div className="border-t p-4 flex justify-end space-x-3">
           <button
@@ -209,12 +276,12 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Uploading...
+                  Submitting...
                 </>
               ) : (
                 <>
                   <FiUpload className="mr-2" />
-                  Upload Documents
+                  Submit
                 </>
               )}
             </button>

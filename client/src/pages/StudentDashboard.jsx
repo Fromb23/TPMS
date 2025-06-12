@@ -73,7 +73,7 @@ const StudentDashboard = () => {
         return (
           <div className="bg-blue-50 p-4 rounded-lg mb-6">
             <h3 className="font-semibold text-lg flex items-center mb-2">
-              <FiAlertCircle className="mr-2 text-blue-600" />
+              <FiAlertCircle className="mr-2 text-red-600" />
               Action Required
             </h3>
             <p>Please submit your school documents and TP acceptance letter to begin the process.</p>
@@ -82,7 +82,7 @@ const StudentDashboard = () => {
               className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
             >
               <FiUpload className="mr-2" />
-              Upload Documents
+              Upload School Documents
             </button>
           </div>
         );
@@ -204,13 +204,13 @@ const StudentDashboard = () => {
       title="Student Teacher Dashboard" 
       role="student"
       breadcrumbs={[
-        { label: 'Home', href: '/' },
-        { label: 'TP Dashboard', href: '/student/dashboard' }
+        { label: 'Home', href: '/student-dashboard' },
+        { label: 'TP Dashboard', href: '/student-dashboard' }
       ]}
     >
       <div className="space-y-6">
         {/* Progress Tracker */}
-        <section className="bg-white p-4 rounded-lg shadow">
+        <section className="hidden md:block bg-white p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <FiCalendar className="mr-2 text-blue-500" />
             TP Timeline
