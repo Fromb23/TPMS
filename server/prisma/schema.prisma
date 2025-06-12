@@ -29,21 +29,25 @@ model User {
 }
 
 model Student {
-  id        String   @id @default(uuid())
-  userId    String
+  id                 String   @id @default(uuid())
+  userId             String
+  schoolId           String?  
   subjectCombination String?
-  tpApplication TpApplication[]
-  lessonPlan LessonPlan[]
-  supervisionVisit SupervisionVisit[]
-  report Report[]
-  finalDocument FinalDocument[]
-  grade Grade[]
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  school             School?   @relation(fields: [schoolId], references: [id])
+  user               User     @relation(fields: [userId], references: [id])
+  documents          Document[]
+  lessonPlan         LessonPlan[]
+  supervisionVisit   SupervisionVisit[]
+  report             Report[]
+  finalDocument      FinalDocument[]
+  grade              Grade[]
+  tpApplication      TpApplication[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   @@map("students")
 }
+
 
 model Lecturer {
   id        String   @id @default(uuid())
@@ -72,6 +76,21 @@ model Admin {
   @@map("admins")
 }
 
+model Document {
+  id         String   @id @default(uuid())
+  name       String
+  url        String
+  type       String
+  studentId  String?
+  student    Student? @relation(fields: [studentId], references: [id])
+  schoolId   String?
+  school     School?  @relation(fields: [schoolId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@map("documents")
+}
+
+
 model Zone {
   id        String   @id @default(uuid())
   name      String   @unique
@@ -85,16 +104,26 @@ model Zone {
 }
 
 model School {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  tpApplication TpApplication[]
-  zoneId    String  
-  zone      Zone     @relation(fields: [zoneId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String    @id @default(uuid())
+  name               String    @unique
+  address            String?
+  contact            String?
+  county             String?
+  subjectCombination String?
+  zoneId             String
+
+  zone               Zone      @relation(fields: [zoneId], references: [id])
+  students           Student[]
+  documents          Document[]
+  tpApplication      TpApplication[]
+
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@map("schools")
 }
+
+
 
 model TpApplication {
   id        String   @id @default(uuid())
