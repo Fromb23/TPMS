@@ -10,11 +10,12 @@ import {
 
 const StudentDashboard = () => {
   // State for different TP phases
-  const [currentPhase, setCurrentPhase] = useState('document-submission'); // 'document-submission', 'pre-tp', 'active-tp', 'assessment', 'post-tp', 'completed'
+  const [currentPhase, setCurrentPhase] = useState('active-tp'); // 'document-submission', 'pre-tp', 'active-tp', 'assessment', 'post-tp', 'completed'
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [schoolInfo, setSchoolInfo] = useState(null);
+  const [supervisorInfo, setSupervisorInfo] = useState(null);
   const [uploadType, setUploadType] = useState('');
   
-  // Mock data - in a real app, this would come from API calls
   const [tpData, setTpData] = useState({
     schoolDocuments: {
       submitted: false,
@@ -37,7 +38,6 @@ const StudentDashboard = () => {
 
   // Simulate phase changes based on TP timeline
   useEffect(() => {
-    // This would normally be determined by API data
     const determinePhase = () => {
       if (!tpData.schoolDocuments.submitted) return 'document-submission';
       if (!tpData.schoolDocuments.approved) return 'pre-tp';
@@ -232,18 +232,27 @@ const StudentDashboard = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-3 bg-gray-50 rounded-lg">
-              <h3 className="font-medium mb-1">Assigned School</h3>
-              <p>Nairobi High School</p>
-              <p className="text-sm text-gray-600 mt-1 flex items-center">
-                <FiMapPin className="mr-1" />
-                Nairobi Central, Nairobi County
-              </p>
+              {schoolInfo ? (
+                <>
+                  <h3 className="font-medium mb-1">{schoolInfo.name}</h3>
+                  <p>{schoolInfo.address}</p>
+                  <p className="text-sm text-gray-600 mt-1">{schoolInfo.contact}</p>
+                </>
+              ) : (
+                <p className="text-gray-500">No current school </p>
+              )}
             </div>
             
             <div className="p-3 bg-gray-50 rounded-lg">
-              <h3 className="font-medium mb-1">Supervising Lecturer</h3>
-              <p>Dr. Wanjiku Muthoni</p>
-              <p className="text-sm text-gray-600 mt-1">wanjiku@university.edu</p>
+              { supervisorInfo ? (
+                <>
+                  <h3 className="font-medium mb-1">{supervisorInfo.name}</h3>
+                  <p>{supervisorInfo.position}</p>
+                  <p className="text-sm text-gray-600 mt-1">{supervisorInfo.contact}</p>
+                </>
+              ) : (
+                <p className="text-gray-500">No assigned supervisor</p>
+              )}
             </div>
           </div>
         </section>
