@@ -1,3 +1,7 @@
+import React from 'react';
+import {Profile} from './Profile';
+
+
 export const Header = ({ title }) => {
   return (
     <header className="bg-white shadow">
