@@ -201,7 +201,7 @@ const StudentDashboard = () => {
 
   return (
     <Layout 
-      title="Teaching Practice Dashboard" 
+      title="Student Teacher Dashboard" 
       role="student"
       breadcrumbs={[
         { label: 'Home', href: '/' },

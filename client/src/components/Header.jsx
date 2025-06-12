@@ -1,10 +1,14 @@
 import React from 'react';
-import {Profile} from './Profile';
+import { Profile } from './Profile';
 
 
-export const Header = ({ title }) => {
+export const Header = ({ title, toggleSidebar }) => {
   return (
-    <header className="bg-white shadow">
+    <header className="bg-white shadow px-4 py-4 flex justify-between items-center">
+      {/* Hamburger only on small screens */}
+      {/* <button onClick={toggleSidebar} className="lg:hidden text-2xl text-gray-700">
+        ☰
+      </button> */}
       <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-800">{title}</h1>

@@ -5,6 +5,6 @@ export const login = async (email, password) => {
         const response = await apiClient.post('/auth/login', { email, password });
         return response.data;
     } catch (error) {
-        throw error.response ? error.response.data : new Error('Network error');
+        throw new Error (error.response?.data?.error || 'Something went wrong');
     }
 }
