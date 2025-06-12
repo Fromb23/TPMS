@@ -1,0 +1,248 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String     @id @default(uuid())
+  username   String     @unique
+  fullName   String
+  email      String     @unique
+  role       Role       @default(STUDENT)
+  password   String
+  student    Student[]
+  lecturer   Lecturer[]
+  admin      Admin[]
+  alert      Alert[]
+  isActive   Boolean    @default(true)
+  isVerified Boolean    @default(false)
+  isBlocked  Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@map("users")
+}
+
+model Student {
+  id               String             @id @default(uuid())
+  userId           String
+  tpApplication    TpApplication[]
+  lessonPlan       LessonPlan[]
+  supervisionVisit SupervisionVisit[]
+  report           Report[]
+  finalDocument    FinalDocument[]
+  grade            Grade[]
+  user             User               @relation(fields: [userId], references: [id])
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@map("students")
+}
+
+model Lecturer {
+  id                   String                 @id @default(uuid())
+  department           String
+  userId               String
+  lecturerZoneAssigned LecturerZoneAssigned[]
+  lecturerZoneRequest  LecturerZoneRequest[]
+  supervisionSchedule  SupervisionSchedule[]
+  supervisionVisit     SupervisionVisit[]
+  report               Report[]
+  grade                Grade[]
+  user                 User                   @relation(fields: [userId], references: [id])
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  @@map("lecturers")
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Zone {
+  id                   String                 @id @default(uuid())
+  name                 String                 @unique
+  schools              School[]
+  lecturerZoneRequest  LecturerZoneRequest[]
+  lecturerZoneAssigned LecturerZoneAssigned[]
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  @@map("zones")
+}
+
+model School {
+  id            String          @id @default(uuid())
+  name          String          @unique
+  tpApplication TpApplication[]
+  zoneId        String
+  zone          Zone            @relation(fields: [zoneId], references: [id])
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@map("schools")
+}
+
+model TpApplication {
+  id         String   @id @default(uuid())
+  schoolName String
+  position   String
+  startDate  DateTime
+  endDate    DateTime
+  studentId  String
+  schoolId   String
+  student    Student  @relation(fields: [studentId], references: [id])
+  school     School   @relation(fields: [schoolId], references: [id])
+  status     Status   @default(PENDING)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("tp_applications")
+}
+
+model LecturerZoneAssigned {
+  id         String   @id @default(uuid())
+  lecturerId String
+  zoneId     String
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  zone       Zone     @relation(fields: [zoneId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("lecturer_zone_assigned")
+}
+
+model LecturerZoneRequest {
+  id         String   @id @default(uuid())
+  lecturerId String
+  zoneId     String
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  zone       Zone     @relation(fields: [zoneId], references: [id])
+  status     Status   @default(PENDING)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("lecturer_zone_requests")
+}
+
+model SupervisionSchedule {
+  id         String   @id @default(uuid())
+  lecturerId String
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  startDate  DateTime
+  endDate    DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("supervision_schedules")
+}
+
+model LessonPlan {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id])
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("lesson_plans")
+}
+
+model SupervisionVisit {
+  id         String   @id @default(uuid())
+  studentId  String
+  lecturerId String
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  student    Student  @relation(fields: [studentId], references: [id])
+  date       DateTime
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("supervision_visits")
+}
+
+model Alert {
+  id        String    @id @default(uuid())
+  userId    String
+  message   String
+  type      AlertType @default(GENERAL)
+  isRead    Boolean   @default(false)
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("alerts")
+}
+
+model Report {
+  id         String   @id @default(uuid())
+  title      String
+  studentId  String
+  lecturerId String
+  student    Student  @relation(fields: [studentId], references: [id])
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("reports")
+}
+
+model FinalDocument {
+  id        String   @id @default(uuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  title     String
+  content   String
+  fileUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("final_documents")
+}
+
+model Grade {
+  id         String   @id @default(uuid())
+  studentId  String
+  lecturerId String
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  student    Student  @relation(fields: [studentId], references: [id])
+  score      Int
+  feedback   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("grades")
+}
+
+enum Role {
+  STUDENT
+  LECTURER
+  ADMIN
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AlertType {
+  GENERAL
+  WARNING
+  INFO
+}

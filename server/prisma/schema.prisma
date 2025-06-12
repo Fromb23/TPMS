@@ -31,6 +31,7 @@ model User {
 model Student {
   id        String   @id @default(uuid())
   userId    String
+  subjectCombination String?
   tpApplication TpApplication[]
   lessonPlan LessonPlan[]
   supervisionVisit SupervisionVisit[]
