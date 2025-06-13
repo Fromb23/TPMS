@@ -27,3 +27,21 @@ export const submitSchoolDocuments = async ({ userId, schoolData, files }) => {
     throw error;
   }
 };
+
+export const getDocumentStatusByUserId = async (userId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error("No token found");
+
+    const response = await apiClient.get(`/documents/status/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to get document status:", error.message || error);
+    throw error;
+  }
+}

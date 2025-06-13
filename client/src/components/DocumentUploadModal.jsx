@@ -3,7 +3,8 @@ import { useMutation } from '@tanstack/react-query';
 import { FiUpload, FiX, FiFile, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { submitSchoolDocuments } from '../services/submitSchoolDocuments';
 
-const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
+
+const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }) => {
   const [files, setFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
@@ -35,7 +36,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload }) => {
     onSuccess: (data) => {
       setUploadSuccess(true);
       onUpload(files);
-      setTimeout(handleClose, 2000);
+      setTimeout(handleClose, 5000);
     },
     onError: (error) => {
       setUploadError("Upload failed. Please try again.");

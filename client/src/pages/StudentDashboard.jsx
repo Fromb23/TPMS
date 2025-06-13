@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
+import { useQuery } from '@tanstack/react-query';
 import { ProgressSteps, StatusCard, QuickAction } from '../components/UI';
+import DocumentSubmissionPhase from '../components/DocumentSubmissionPhase';
 import DocumentUploadModal from '../components/DocumentUploadModal';
+import { getDocumentStatusByUserId } from '../services/submitSchoolDocuments';
 import { 
   FiCalendar, FiBook, FiUpload, FiMessageSquare, 
   FiCheckCircle, FiClock, FiAlertCircle, FiFileText,
@@ -34,6 +37,20 @@ const StudentDashboard = () => {
       submitted: false,
       approved: false
     }
+  });
+
+   const { data: documentStatus, isLoading: isStatusLoading } = useQuery({
+    queryKey: ['student-document-status'],
+    queryFn: async () => {
+      const user = localStorage.getItem("user");
+      const userId = user ? JSON.parse(user).id : null;
+      if (!userId) throw new Error("User not authenticated");
+      return await getDocumentStatusByUserId({ userId });
+    },
+    // Only needed if you want to conditionally run the query
+    // enabled: !!userId,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 
   // Simulate phase changes based on TP timeline
@@ -69,23 +86,7 @@ const StudentDashboard = () => {
   // Render different content based on current phase
   const renderPhaseContent = () => {
     switch(currentPhase) {
-      case 'document-submission':
-        return (
-          <div className="bg-blue-50 p-4 rounded-lg mb-6">
-            <h3 className="font-semibold text-lg flex items-center mb-2">
-              <FiAlertCircle className="mr-2 text-red-600" />
-              Action Required
-            </h3>
-            <p>Please submit your school documents and TP acceptance letter to begin the process.</p>
-            <button 
-              onClick={() => handleUpload('school-documents')}
-              className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
-            >
-              <FiUpload className="mr-2" />
-              Upload School Documents
-            </button>
-          </div>
-        );
+      case 'document-submission': return <DocumentSubmissionPhase handleUpload={handleUpload} documentStatus={documentStatus} />;
       
       case 'pre-tp':
         return (
