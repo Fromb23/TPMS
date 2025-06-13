@@ -41,6 +41,7 @@ model Student {
   finalDocument      FinalDocument[]
   grade              Grade[]
   tpApplication      TpApplication[]
+  recordOfWork       RecordOfWork[]
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
@@ -136,6 +137,19 @@ model TpApplication {
   updatedAt  DateTime @updatedAt
 
   @@map("tp_applications")
+}
+
+model RecordOfWork {
+  id             String    @id @default(uuid())
+  student        Student   @relation(fields: [studentId], references: [id])
+  studentId      String
+  school         String
+  learningArea   String
+  subject        String
+  teacher        String
+  records        Json      // Store an array or structured entries
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 model LecturerZoneAssigned {
