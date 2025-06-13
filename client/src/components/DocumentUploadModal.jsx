@@ -6,6 +6,7 @@ import { submitSchoolDocuments } from '../services/schoolServices';
 import { submitLessonPlan } from '../services/lessonPlanServices';
 import LessonPlanTemplate from './LessonPlanTemplate';
 import RecordOfWorkTemplate from './RecordOfWorkTemplate';
+import { submitRecordOfWork } from '../services/recordOfWorkServices';
 
 const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }) => {
   const [files, setFiles] = useState([]);
@@ -30,9 +31,11 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
 
     // record-of-work
     school: "",
+    subject: "",
     learningArea: "",
-    teacherName: "",
-    records: [],
+    teacher: "",
+      records: [
+    { date: '', week: '', workDone: '', reflection: '', signature: '' }],
   });
 
   const user = localStorage.getItem("user");
@@ -52,13 +55,14 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
   };
 
   const mutation = useMutation({
-    mutationFn: submitSchoolDocuments,
+    mutationFn: (recordData) => submitRecordOfWork(recordData),
     onSuccess: (data) => {
       setUploadSuccess(true);
       onUpload(files);
       setTimeout(handleClose, 5000);
     },
     onError: (error) => {
+      console.log("Upload error:", error);
       setUploadError("Upload failed. Please try again.");
       setIsUploading(false);
     },
@@ -73,6 +77,19 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
   },
   onError: (error) => {
     setUploadError("Lesson plan submission failed. Please try again.");
+    setIsUploading(false);
+  },
+});
+
+const recordMutation = useMutation({
+  mutationFn: (recordData) => submitRecordOfWork(recordData),
+  onSuccess: (data) => {
+    setUploadSuccess(true);
+    onUpload(files);
+    setTimeout(handleClose, 5000);
+  },
+  onError: (error) => {
+    setUploadError("Record of work submission failed. Please try again.");
     setIsUploading(false);
   },
 });
@@ -121,10 +138,11 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
         userId,
         school: formData.school,
         learningArea: formData.learningArea,
-        teacherName: formData.teacherName,
+        teacher: formData.teacher,
         records: formData.records,
+        subject: formData.subject,
       };
-      // recordMutation.mutate(recordData);
+      recordMutation.mutate(recordData);
     }
     else {
       setUploadError("Unsupported document type");

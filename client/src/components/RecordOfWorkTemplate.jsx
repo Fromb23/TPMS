@@ -1,4 +1,11 @@
 const RecordOfWorkTemplate = ({ formData, setFormData }) => {
+
+  const handleRecordChange = (index, field, value) => {
+  const updatedRecords = [...formData.records];
+  updatedRecords[index][field] = value;
+  setFormData({ ...formData, records: updatedRecords });
+};
+
   return (
     <div className="space-y-4">
       <h2 className="text-center text-lg font-bold">Record of Work</h2>
@@ -41,15 +48,52 @@ const RecordOfWorkTemplate = ({ formData, setFormData }) => {
           </tr>
         </thead>
         <tbody>
-          {/* Later: map through dynamic rows if needed */}
-          <tr>
-            <td className="border p-2"><input className="w-full" type="date" /></td>
-            <td className="border p-2"><input className="w-full" type="text" /></td>
-            <td className="border p-2"><input className="w-full" type="text" /></td>
-            <td className="border p-2"><input className="w-full" type="text" /></td>
-            <td className="border p-2"><input className="w-full" type="text" /></td>
-          </tr>
-        </tbody>
+  {formData.records.map((record, index) => (
+    <tr key={index}>
+      <td className="border p-2">
+        <input
+          type="date"
+          className="w-full"
+          value={record.date}
+          onChange={(e) => handleRecordChange(index, 'date', e.target.value)}
+        />
+      </td>
+      <td className="border p-2">
+        <input
+          type="text"
+          className="w-full"
+          value={record.week}
+          onChange={(e) => handleRecordChange(index, 'week', e.target.value)}
+        />
+      </td>
+      <td className="border p-2">
+        <input
+          type="text"
+          className="w-full"
+          value={record.workDone}
+          onChange={(e) => handleRecordChange(index, 'workDone', e.target.value)}
+        />
+      </td>
+      <td className="border p-2">
+        <input
+          type="text"
+          className="w-full"
+          value={record.reflection}
+          onChange={(e) => handleRecordChange(index, 'reflection', e.target.value)}
+        />
+      </td>
+      <td className="border p-2">
+        <input
+          type="text"
+          className="w-full"
+          value={record.signature}
+          onChange={(e) => handleRecordChange(index, 'signature', e.target.value)}
+        />
+      </td>
+    </tr>
+  ))}
+</tbody>
+
       </table>
     </div>
   );

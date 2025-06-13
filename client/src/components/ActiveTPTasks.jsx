@@ -1,7 +1,7 @@
 import React from 'react';
 import { FiUpload } from 'react-icons/fi';
 
-const ActiveTPTasks = ({ handleUpload, disabled }) => {
+const ActiveTPTasks = ({ handleUpload, disabled, recordOfWorkDisabled }) => {
   return (
     <>
       {/* Daily Task: Lesson Plan */}
@@ -50,12 +50,15 @@ const ActiveTPTasks = ({ handleUpload, disabled }) => {
       <div className="bg-white p-4 rounded-lg shadow mb-6">
         <h3 className="font-semibold text-lg mb-3">Record of Work</h3>
         <p className="mb-3">Keep track of what you’ve taught each week.</p>
-        <button
+         <button
           onClick={() => handleUpload('record-of-work')}
-          className="bg-purple-600 text-white px-4 py-2 rounded-md flex items-center"
+          className={`px-4 py-2 rounded-md flex items-center ${
+            recordOfWorkDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white'
+          }`}
+          disabled={recordOfWorkDisabled}
         >
           <FiUpload className="mr-2" />
-          Upload Record of Work
+          {recordOfWorkDisabled ? "Already Submitted" : "Submit Record of Work"}
         </button>
       </div>
     </>

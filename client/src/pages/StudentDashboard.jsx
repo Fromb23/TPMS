@@ -13,6 +13,7 @@ import {
   FiCheckCircle, FiClock, FiAlertCircle, FiFileText,
   FiHome, FiMapPin, FiAward, FiUsers, FiFile
 } from 'react-icons/fi';
+import { fetchRecordOfWorkStatusToday } from '../services/recordOfWorkServices';
 
 const StudentDashboard = () => {
   // State for different TP phases
@@ -46,21 +47,33 @@ const StudentDashboard = () => {
     retry: false,
   });
 
-const {
-  data: submissionStatus,
-  isLoading: isLessonStatusLoading,
-  isError: isLessonStatusError,
-  error: lessonStatusError
-} = useQuery({
-  queryKey: ['lesson-plan-status', userId],
-  queryFn: async () => {
-    if (!userId) throw new Error("User not authenticated");
-    return await fetchLessonPlanStatusToday(userId);
-  },
-  enabled: !!userId,
-  refetchOnWindowFocus: false,
-  retry: false,
-});
+  const {
+    data: submissionStatus,
+    isLoading: isLessonStatusLoading,
+    isError: isLessonStatusError,
+    error: lessonStatusError
+  } = useQuery({
+    queryKey: ['lesson-plan-status', userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("User not authenticated");
+      return await fetchLessonPlanStatusToday(userId);
+    },
+    enabled: !!userId,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+
+  // Fetch record of work status
+  const { data: recordOfWorkStatus, isLoading: isRecordOfWorkLoading, isError: isRecordOfWorkError, error: recordOfWorkError } = useQuery({
+    queryKey: ['record-of-work-status', userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("User not authenticated");
+      return await fetchRecordOfWorkStatusToday(userId);
+    },
+    enabled: !!userId,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
   // Simulate phase changes based on TP timeline
   useEffect(() => {
@@ -85,7 +98,6 @@ const {
 
 
   // Render different content based on current phase
-  console.log("Current Phase:", currentPhase);
   const renderPhaseContent = () => {
     switch (currentPhase) {
       case 'document-submission': return <DocumentSubmissionPhase
@@ -108,7 +120,8 @@ const {
         );
 
       case 'active-tp':
-         return <ActiveTPTasks handleUpload={handleUpload} disabled={submissionStatus?.hasSubmitted || isLessonStatusLoading} />;
+        return <ActiveTPTasks handleUpload={handleUpload} disabled={submissionStatus?.hasSubmitted || isLessonStatusLoading} 
+        recordOfWorkDisabled={recordOfWorkStatus?.hasSubmitted || isRecordOfWorkLoading}/>;
 
       case 'assessment':
         return (
