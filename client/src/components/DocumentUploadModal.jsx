@@ -3,9 +3,9 @@ import { useMutation } from '@tanstack/react-query';
 import { FiUpload, FiX, FiFile, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import DocumentFileInput from './DocumentFileInput';
 import { submitSchoolDocuments } from '../services/schoolServices';
+import { submitLessonPlan } from '../services/lessonPlanServices';
 import LessonPlanTemplate from './LessonPlanTemplate';
 import RecordOfWorkTemplate from './RecordOfWorkTemplate';
-
 
 const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }) => {
   const [files, setFiles] = useState([]);
@@ -14,12 +14,29 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
+    // school-documents
     schoolName: "",
     schoolAddress: "",
     schoolContact: "",
     schoolCounty: "",
     subjectCombination: "",
+
+    // lesson-plan
+    subject: "",
+    lessonTitle: "",
+    startTime: "",
+    endTime: "",
+    comments: "",
+
+    // record-of-work
+    school: "",
+    learningArea: "",
+    teacherName: "",
+    records: [],
   });
+
+  const user = localStorage.getItem("user");
+  const userId = user ? JSON.parse(user).id : null;
 
   const handleClose = useCallback(() => {
     setFiles([]);
@@ -47,39 +64,84 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
     },
   });
 
+  const lessonPlanMutation = useMutation({
+  mutationFn: (lessonData) => submitLessonPlan(lessonData),
+  onSuccess: (data) => {
+    setUploadSuccess(true);
+    onUpload(files);
+    setTimeout(handleClose, 5000);
+  },
+  onError: (error) => {
+    setUploadError("Lesson plan submission failed. Please try again.");
+    setIsUploading(false);
+  },
+});
+
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (files.length === 0) {
-      setUploadError("Please select at least one file");
-      return;
-    }
-
-    const user = localStorage.getItem("user");
-    const userId = user ? JSON.parse(user).id : null;
 
     if (!userId) {
       setUploadError("User not authenticated");
       return;
     }
 
-    const schoolData = {
-      name: formData.schoolName,
-      address: formData.schoolAddress,
-      contact: formData.schoolContact,
-      county: formData.schoolCounty,
-      subjectCombination: formData.subjectCombination,
-    };
-
     setIsUploading(true);
     setUploadError(null);
 
-    mutation.mutate({ userId, schoolData, files });
+    if (type === 'school-documents') {
+      if (files.length === 0) {
+        setUploadError("Please select at least one file");
+        setIsUploading(false);
+        return;
+      }
+
+      const schoolData = {
+        name: formData.schoolName,
+        address: formData.schoolAddress,
+        contact: formData.schoolContact,
+        county: formData.schoolCounty,
+        subjectCombination: formData.subjectCombination,
+      };
+
+      mutation.mutate({ userId, schoolData, files });
+    }
+    else if (type === 'lesson-plan') {
+      const lessonData = {
+        userId,
+        subject: formData.subject,
+        lessonTitle: formData.lessonTitle,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        comments: formData.comments,
+      };
+      lessonPlanMutation.mutate(lessonData);
+    }
+    else if (type === 'record-of-work') {
+      const recordData = {
+        userId,
+        school: formData.school,
+        learningArea: formData.learningArea,
+        teacherName: formData.teacherName,
+        records: formData.records,
+      };
+      // recordMutation.mutate(recordData);
+    }
+    else {
+      setUploadError("Unsupported document type");
+      setIsUploading(false);
+    }
   };
 
+  // Determine if submit button should be disabled
+  const isSubmitDisabled = () => {
+    if (isUploading) return true;
+    if (type === 'school-documents') return files.length === 0;
+    if (type === 'lesson-plan') return !formData.subject
+    if (type === 'record-of-work') return !formData.school || !formData.learningArea;
+    return true;
+  };
 
-  // Get modal content based on upload type
-  const getModalContent = () => {
+  const { title, description, accept, multiple } = (() => {
     switch (type) {
       case 'school-documents':
         return {
@@ -88,47 +150,20 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
           accept: '.pdf',
           multiple: true
         };
-
-      case 'scheme-of-work':
-        return {
-          title: 'Scheme of Work Submission',
-          description: 'Upload your scheme of work document for the entire TP period.',
-          accept: '.pdf,.doc,.docx',
-          multiple: false
-        };
-
       case 'lesson-plan':
         return {
           title: 'Lesson Plan Submission',
-          description: 'Upload your daily lesson plan. Please include the date in the filename.',
-          accept: '.pdf,.doc,.docx',
+          description: 'Submit your daily lesson plan details.',
+          accept: '',
           multiple: false
         };
-
-      case 'timetable':
+      case 'record-of-work':
         return {
-          title: 'Timetable Submission',
-          description: 'Upload your teaching timetable for the TP period.',
-          accept: '.pdf,.doc,.docx,.xls,.xlsx',
+          title: 'Record of Work Submission',
+          description: 'Submit your teaching records.',
+          accept: '',
           multiple: false
         };
-
-      case 'subject-combination':
-        return {
-          title: 'Subject Combination',
-          description: 'Upload document detailing your assigned subjects and classes.',
-          accept: '.pdf,.doc,.docx',
-          multiple: false
-        };
-
-      case 'final-documents':
-        return {
-          title: 'Final TP Documents',
-          description: 'Upload all required final documents for TP completion.',
-          accept: '.pdf,.doc,.docx,.zip',
-          multiple: true
-        };
-
       default:
         return {
           title: 'Document Upload',
@@ -137,16 +172,13 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
           multiple: true
         };
     }
-  };
-
-  const { title, description, accept, multiple } = getModalContent();
+  })();
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-        {/* Modal Header */}
         <div className="flex justify-between items-center border-b p-4">
           <h3 className="text-lg font-semibold">{title}</h3>
           <button
@@ -158,7 +190,6 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
           </button>
         </div>
 
-        {/* Modal Body */}
         <div className="p-4">
           <p className="mb-4 text-gray-600">{description}</p>
 
@@ -168,7 +199,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
               Documents uploaded successfully!
             </div>
           ) : (
-            <>
+            <form onSubmit={handleSubmit} className="space-y-4 mb-6">
               {type === 'school-documents' && (
                 <div className="space-y-4 mb-6">
                   <input
@@ -209,7 +240,6 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
                 </div>
               )}
 
-              {/* Render Template Components Conditionally */}
               {type === 'record-of-work' && (
                 <RecordOfWorkTemplate formData={formData} setFormData={setFormData} />
               )}
@@ -218,7 +248,6 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
                 <LessonPlanTemplate formData={formData} setFormData={setFormData} />
               )}
 
-              {/* Fallback File Upload for Other Types */}
               {type !== 'record-of-work' && type !== 'lesson-plan' && (
                 <DocumentFileInput
                   onFileSelect={(fileList) => {
@@ -232,27 +261,27 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
                 />
               )}
 
-
-              {/* List of selected files */}
-              <ul className="space-y-1">
-                {files.map((file, index) => (
-                  <li key={index} className="flex items-center text-sm">
-                    <FiFile className="mr-2 text-gray-500" />
-                    <span
-                      className="truncate text-blue-600 hover:underline cursor-pointer"
-                      onClick={() => {
-                        const url = URL.createObjectURL(file);
-                        window.open(url, '_blank');
-                      }}
-                    >
-                      {file.name}
-                    </span>
-                    <span className="ml-auto text-xs text-gray-500">
-                      {(file.size / 1024).toFixed(1)} KB
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              {type !== 'lesson-plan' && type !== 'record-of-work' && (
+                <ul className="space-y-1">
+                  {files.map((file, index) => (
+                    <li key={index} className="flex items-center text-sm">
+                      <FiFile className="mr-2 text-gray-500" />
+                      <span
+                        className="truncate text-blue-600 hover:underline cursor-pointer"
+                        onClick={() => {
+                          const url = URL.createObjectURL(file);
+                          window.open(url, '_blank');
+                        }}
+                      >
+                        {file.name}
+                      </span>
+                      <span className="ml-auto text-xs text-gray-500">
+                        {(file.size / 1024).toFixed(1)} KB
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
 
               {uploadError && (
                 <div className="bg-red-50 text-red-700 p-3 rounded-md mb-4 flex items-center">
@@ -260,46 +289,42 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
                   {uploadError}
                 </div>
               )}
-            </>
-          )}
-        </div>
 
-        {/* Modal Footer */}
-        <div className="border-t p-4 flex justify-end space-x-3">
-          <button
-            onClick={handleClose}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            disabled={isUploading}
-          >
-            Cancel
-          </button>
-          {!uploadSuccess && (
-            <button
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
-              disabled={isUploading || files.length === 0}
-            >
-              {isUploading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <FiUpload className="mr-2" />
-                  Submit
-                </>
-              )}
-            </button>
+              <div className="border-t pt-4 flex justify-end space-x-3">
+                <button
+                  onClick={handleClose}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  disabled={isUploading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
+                  disabled={isSubmitDisabled()}
+                >
+                  {isUploading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <FiUpload className="mr-2" />
+                      Submit
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           )}
         </div>
       </div>
     </div>
   );
-
 };
 
 export default DocumentUploadModal;

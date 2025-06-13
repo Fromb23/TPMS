@@ -7,6 +7,7 @@ import DocumentUploadModal from '../components/DocumentUploadModal';
 import TpTimeline from '../components/TpTimeline';
 import ActiveTPTasks from '../components/ActiveTPTasks';
 import { fetchSchoolDataByStudentId, getDocumentStatusByUserId } from '../services/schoolServices';
+import { fetchLessonPlanStatusToday } from '../services/lessonPlanServices';
 import {
   FiCalendar, FiBook, FiUpload, FiMessageSquare,
   FiCheckCircle, FiClock, FiAlertCircle, FiFileText,
@@ -45,7 +46,21 @@ const StudentDashboard = () => {
     retry: false,
   });
 
-
+const {
+  data: submissionStatus,
+  isLoading: isLessonStatusLoading,
+  isError: isLessonStatusError,
+  error: lessonStatusError
+} = useQuery({
+  queryKey: ['lesson-plan-status', userId],
+  queryFn: async () => {
+    if (!userId) throw new Error("User not authenticated");
+    return await fetchLessonPlanStatusToday(userId);
+  },
+  enabled: !!userId,
+  refetchOnWindowFocus: false,
+  retry: false,
+});
 
   // Simulate phase changes based on TP timeline
   useEffect(() => {
@@ -93,7 +108,7 @@ const StudentDashboard = () => {
         );
 
       case 'active-tp':
-         return <ActiveTPTasks handleUpload={handleUpload} />;
+         return <ActiveTPTasks handleUpload={handleUpload} disabled={submissionStatus?.hasSubmitted || isLessonStatusLoading} />;
 
       case 'assessment':
         return (
