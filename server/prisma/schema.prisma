@@ -8,33 +8,32 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  fullName      String
-  email     String   @unique
-  role      Role @default(STUDENT)
-  password  String
-  student  Student[]
-  lecturer Lecturer[]
-  admin     Admin[]
-  alert     Alert[]
-  isActive  Boolean @default(true)
-  isVerified Boolean @default(false)
-  isBlocked Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id         String     @id @default(uuid())
+  username   String     @unique
+  fullName   String
+  email      String     @unique
+  role       Role       @default(STUDENT)
+  password   String
+  student    Student[]
+  lecturer   Lecturer[]
+  admin      Admin[]
+  alert      Alert[]
+  isActive   Boolean    @default(true)
+  isVerified Boolean    @default(false)
+  isBlocked  Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   @@map("users")
 }
 
 model Student {
-  id                 String   @id @default(uuid())
+  id                 String             @id @default(uuid())
   userId             String
-  schoolId           String?  
+  schoolId           String?
   subjectCombination String?
-  school             School?   @relation(fields: [schoolId], references: [id])
-  user               User     @relation(fields: [userId], references: [id])
+  school             School?            @relation(fields: [schoolId], references: [id])
+  user               User               @relation(fields: [userId], references: [id])
   documents          Document[]
   lessonPlan         LessonPlan[]
   supervisionVisit   SupervisionVisit[]
@@ -42,26 +41,25 @@ model Student {
   finalDocument      FinalDocument[]
   grade              Grade[]
   tpApplication      TpApplication[]
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   @@map("students")
 }
 
-
 model Lecturer {
-  id        String   @id @default(uuid())
-  department String
-  userId    String 
+  id                   String                 @id @default(uuid())
+  department           String
+  userId               String
   lecturerZoneAssigned LecturerZoneAssigned[]
-  lecturerZoneRequest LecturerZoneRequest[]
-  supervisionSchedule SupervisionSchedule[]
-  supervisionVisit SupervisionVisit[]
-  report Report[]
-  grade Grade[]
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  lecturerZoneRequest  LecturerZoneRequest[]
+  supervisionSchedule  SupervisionSchedule[]
+  supervisionVisit     SupervisionVisit[]
+  report               Report[]
+  grade                Grade[]
+  user                 User                   @relation(fields: [userId], references: [id])
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
 
   @@map("lecturers")
 }
@@ -77,158 +75,158 @@ model Admin {
 }
 
 model Document {
-  id         String   @id @default(uuid())
-  name       String
-  url        String
-  type       String
-  status     Status @default(PENDING)
-  studentId  String?
-  student    Student? @relation(fields: [studentId], references: [id])
-  schoolId   String?
-  school     School?  @relation(fields: [schoolId], references: [id])
-  createdAt  DateTime @default(now())
+  id        String   @id @default(uuid())
+  name      String
+  url       String
+  type      String
+  status    Status   @default(PENDING)
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id])
+  schoolId  String?
+  school    School?  @relation(fields: [schoolId], references: [id])
+  createdAt DateTime @default(now())
 
   @@map("documents")
 }
 
-
 model Zone {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  schools   School[]
-  lecturerZoneRequest LecturerZoneRequest[]
+  id                   String                 @id @default(uuid())
+  name                 String                 @unique
+  schools              School[]
+  lecturerZoneRequest  LecturerZoneRequest[]
   lecturerZoneAssigned LecturerZoneAssigned[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
 
   @@map("zones")
 }
 
 model School {
-  id                 String    @id @default(uuid())
-  name               String    @unique
+  id                 String  @id @default(uuid())
+  name               String  @unique
   address            String?
   contact            String?
   county             String?
   subjectCombination String?
   zoneId             String
 
-  zone               Zone      @relation(fields: [zoneId], references: [id])
-  students           Student[]
-  documents          Document[]
-  tpApplication      TpApplication[]
+  zone          Zone            @relation(fields: [zoneId], references: [id])
+  students      Student[]
+  documents     Document[]
+  tpApplication TpApplication[]
 
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("schools")
 }
 
-
-
 model TpApplication {
-  id        String   @id @default(uuid())
+  id         String   @id @default(uuid())
   schoolName String
-  position  String
-  startDate DateTime
-  endDate   DateTime
-  studentId String
-  schoolId  String
-  student   Student  @relation(fields: [studentId], references: [id])
-  school    School   @relation(fields: [schoolId], references: [id])
-  status    Status   @default(PENDING)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  position   String
+  startDate  DateTime
+  endDate    DateTime
+  studentId  String
+  schoolId   String
+  student    Student  @relation(fields: [studentId], references: [id])
+  school     School   @relation(fields: [schoolId], references: [id])
+  status     Status   @default(PENDING)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("tp_applications")
 }
 
 model LecturerZoneAssigned {
-  id        String   @id @default(uuid())
+  id         String   @id @default(uuid())
   lecturerId String
-  zoneId    String
-  lecturer  Lecturer @relation(fields: [lecturerId], references: [id])
-  zone      Zone     @relation(fields: [zoneId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  zoneId     String
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  zone       Zone     @relation(fields: [zoneId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("lecturer_zone_assigned")
 }
 
 model LecturerZoneRequest {
-  id        String   @id @default(uuid())
+  id         String   @id @default(uuid())
   lecturerId String
-  zoneId    String
-  lecturer  Lecturer @relation(fields: [lecturerId], references: [id])
-  zone      Zone     @relation(fields: [zoneId], references: [id])
-  status    Status   @default(PENDING)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  zoneId     String
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  zone       Zone     @relation(fields: [zoneId], references: [id])
+  status     Status   @default(PENDING)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("lecturer_zone_requests")
 }
 
 model SupervisionSchedule {
-  id        String   @id @default(uuid())
+  id         String   @id @default(uuid())
   lecturerId String
-  lecturer  Lecturer @relation(fields: [lecturerId], references: [id])
-  startDate DateTime
-  endDate   DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  startDate  DateTime
+  endDate    DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("supervision_schedules")
 }
 
 model LessonPlan {
-  id        String   @id @default(uuid())
-  studentId String
-  student   Student  @relation(fields: [studentId], references: [id])
-  title     String
-  description String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid())
+  subject     String
+  studentId   String
+  startTime   String
+  endTime     String
+  student     Student  @relation(fields: [studentId], references: [id])
+  lessonTitle String
+  comments    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("lesson_plans")
 }
 
 model SupervisionVisit {
-  id        String   @id @default(uuid())
-  studentId String
+  id         String   @id @default(uuid())
+  studentId  String
   lecturerId String
-  lecturer  Lecturer @relation(fields: [lecturerId], references: [id])
-  student   Student  @relation(fields: [studentId], references: [id])
-  date      DateTime
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  student    Student  @relation(fields: [studentId], references: [id])
+  date       DateTime
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("supervision_visits")
 }
 
 model Alert {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   userId    String
   message   String
   type      AlertType @default(GENERAL)
-  isRead    Boolean @default(false)
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isRead    Boolean   @default(false)
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@map("alerts")
 }
 
 model Report {
-  id        String   @id @default(uuid())
-  title     String
-  studentId String
+  id         String   @id @default(uuid())
+  title      String
+  studentId  String
   lecturerId String
-  student   Student  @relation(fields: [studentId], references: [id])
-  lecturer  Lecturer @relation(fields: [lecturerId], references: [id])
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  student    Student  @relation(fields: [studentId], references: [id])
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("reports")
 }
@@ -247,15 +245,15 @@ model FinalDocument {
 }
 
 model Grade {
-  id        String   @id @default(uuid())
-  studentId String
+  id         String   @id @default(uuid())
+  studentId  String
   lecturerId String
-  lecturer  Lecturer @relation(fields: [lecturerId], references: [id])
-  student   Student  @relation(fields: [studentId], references: [id])
-  score     Int
-  feedback  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
+  student    Student  @relation(fields: [studentId], references: [id])
+  score      Int
+  feedback   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("grades")
 }
