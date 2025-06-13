@@ -96,3 +96,33 @@ export const createDocument = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+
+export const getDocumentStatusByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const student = await prisma.student.findFirst({
+      where: { userId },
+      include: {
+        documents: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found.' });
+    }
+
+    const latestDocument = student.documents[0];
+
+    const documentStatus = latestDocument ? latestDocument.status : null;
+
+    return res.status(200).json({ status: documentStatus });
+  } catch (err) {
+    console.error('Error fetching document status:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};

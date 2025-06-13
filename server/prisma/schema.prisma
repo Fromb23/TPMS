@@ -81,6 +81,7 @@ model Document {
   name       String
   url        String
   type       String
+  status     Status @default(PENDING)
   studentId  String?
   student    Student? @relation(fields: [studentId], references: [id])
   schoolId   String?
