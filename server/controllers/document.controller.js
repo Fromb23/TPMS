@@ -119,6 +119,7 @@ export const getDocumentStatusByUserId = async (req, res) => {
     const latestDocument = student.documents[0];
 
     const documentStatus = latestDocument ? latestDocument.status : null;
+    console.log('Latest document status:', documentStatus);
 
     return res.status(200).json({ status: documentStatus });
   } catch (err) {
