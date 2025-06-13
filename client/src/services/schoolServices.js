@@ -45,3 +45,21 @@ export const getDocumentStatusByUserId = async (userId) => {
     throw error;
   }
 }
+
+export const fetchSchoolDataByStudentId = async (userId) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No token found");
+
+    const response = await apiClient.get(`/schools/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch school data:", error.message || error);
+    throw error;
+  }
+}

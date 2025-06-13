@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { FiUpload, FiX, FiFile, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import { submitSchoolDocuments } from '../services/submitSchoolDocuments';
+import { submitSchoolDocuments } from '../services/schoolServices';
 
 
 const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }) => {

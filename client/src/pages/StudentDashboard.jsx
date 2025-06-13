@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { useQuery } from '@tanstack/react-query';
 import { StatusCard, QuickAction } from '../components/UI';
-import {DocumentSubmissionPhase} from '../components/DocumentSubmissionPhase';
+import { DocumentSubmissionPhase } from '../components/DocumentSubmissionPhase';
 import DocumentUploadModal from '../components/DocumentUploadModal';
 import TpTimeline from '../components/TpTimeline';
-import { getDocumentStatusByUserId } from '../services/submitSchoolDocuments';
+import { fetchSchoolDataByStudentId, getDocumentStatusByUserId } from '../services/schoolServices';
 import {
   FiCalendar, FiBook, FiUpload, FiMessageSquare,
   FiCheckCircle, FiClock, FiAlertCircle, FiFileText,
@@ -16,9 +16,12 @@ const StudentDashboard = () => {
   // State for different TP phases
   const [currentPhase, setCurrentPhase] = useState(); // 'document-submission', 'pre-tp', 'active-tp', 'assessment', 'post-tp', 'completed'
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [schoolInfo, setSchoolInfo] = useState(null);
   const [supervisorInfo, setSupervisorInfo] = useState(null);
   const [uploadType, setUploadType] = useState('');
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = user?.id;
+
 
   const [tpData, setTpData] = useState({
     schoolDocuments: {
@@ -41,15 +44,28 @@ const StudentDashboard = () => {
   });
 
   const { data: documentStatus, isLoading: isStatusLoading, isError: isStatusError, error: statusError } = useQuery({
-    queryKey: ['student-document-status'],
+    queryKey: ['student-document-status', userId],
     queryFn: async () => {
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (!user?.id) throw new Error("User not authenticated");
-      return await getDocumentStatusByUserId(user.id);
+      if (!userId) throw new Error("User not authenticated");
+      return await getDocumentStatusByUserId(userId);
     },
+    enabled: !!userId,
     refetchOnWindowFocus: false,
     retry: false,
   });
+
+  const { data: studentSchoolData, isLoading: isSchoolLoading, isError: isSchoolError, error: schoolError } = useQuery({
+    queryKey: ['student-school-info', userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("User not authenticated");
+      return await fetchSchoolDataByStudentId(userId);
+    },
+    enabled: !!userId && documentStatus?.status === "APPROVED",
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+
+
 
   // Simulate phase changes based on TP timeline
   useEffect(() => {
@@ -206,44 +222,56 @@ const StudentDashboard = () => {
       ]}
     >
       <div className="space-y-6">
-       <TpTimeline currentPhase={currentPhase} documentStatus={documentStatus} />
+        <TpTimeline currentPhase={currentPhase} documentStatus={documentStatus} />
 
 
         {/* Phase-specific content */}
         {renderPhaseContent()}
 
         {/* School Information */}
-        <section className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4 flex items-center">
-            <FiHome className="mr-2 text-blue-500" />
-            School Information
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-3 bg-gray-50 rounded-lg">
-              {schoolInfo ? (
-                <>
-                  <h3 className="font-medium mb-1">{schoolInfo.name}</h3>
-                  <p>{schoolInfo.address}</p>
-                  <p className="text-sm text-gray-600 mt-1">{schoolInfo.contact}</p>
-                </>
-              ) : (
-                <p className="text-gray-500">No current school </p>
-              )}
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* School Information – conditionally rendered */}
+          {documentStatus?.status === "APPROVED" && (
+            <section className="bg-white p-4 rounded-lg shadow w-full md:w-1/2">
+              <h2 className="text-lg font-semibold mb-4 flex items-center">
+                <FiHome className="mr-2 text-blue-500" />
+                School Information
+              </h2>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                {studentSchoolData?.school ? (
+                  <>
+                    <h3 className="font-medium mb-1">{studentSchoolData.school.name}</h3>
+                    <p>{studentSchoolData.school.address}</p>
+                    <p className="text-sm text-gray-600 mt-1">{studentSchoolData.school.contact}</p>
+                    <p className="text-sm text-gray-500 mt-1">Zone: {studentSchoolData.school.zone.name}</p>
+                  </>
+                ) : (
+                  <p className="text-gray-500">No current school</p>
+                )}
+              </div>
+            </section>
+          )}
 
+
+          {/* Supervisor Information – always rendered */}
+          <section className="bg-white p-4 rounded-lg shadow">
+            <h2 className="text-lg font-semibold mb-4 flex items-center">
+              <FiMapPin className="mr-2 text-blue-500" />
+              Supervisor Information
+            </h2>
             <div className="p-3 bg-gray-50 rounded-lg">
               {supervisorInfo ? (
                 <>
                   <h3 className="font-medium mb-1">{supervisorInfo.name}</h3>
-                  <p>{supervisorInfo.position}</p>
-                  <p className="text-sm text-gray-600 mt-1">{supervisorInfo.contact}</p>
+                  <p>{supervisorInfo.email}</p>
+                  <p className="text-sm text-gray-600 mt-1">{supervisorInfo.phone}</p>
                 </>
               ) : (
-                <p className="text-gray-500">No assigned supervisor</p>
+                <p className="text-gray-500">No supervisor assigned</p>
               )}
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
 
         {/* Quick Actions */}
         <section className="bg-white p-4 rounded-lg shadow">
