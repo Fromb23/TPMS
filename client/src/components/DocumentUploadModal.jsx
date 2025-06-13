@@ -1,7 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { FiUpload, FiX, FiFile, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import DocumentFileInput from './DocumentFileInput';
 import { submitSchoolDocuments } from '../services/schoolServices';
+import LessonPlanTemplate from './LessonPlanTemplate';
+import RecordOfWorkTemplate from './RecordOfWorkTemplate';
 
 
 const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }) => {
@@ -166,66 +169,71 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
             </div>
           ) : (
             <>
-              <div className="space-y-4 mb-6">
-                <input
-                  type="text"
-                  placeholder="School Name"
-                  value={formData.schoolName}
-                  onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  type="text"
-                  placeholder="School Address"
-                  value={formData.schoolAddress}
-                  onChange={(e) => setFormData({ ...formData, schoolAddress: e.target.value })}
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  type="text"
-                  placeholder="School Contact"
-                  value={formData.schoolContact}
-                  onChange={(e) => setFormData({ ...formData, schoolContact: e.target.value })}
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  type="text"
-                  placeholder="School County"
-                  value={formData.schoolCounty}
-                  onChange={(e) => setFormData({ ...formData, schoolCounty: e.target.value })}
-                  className="w-full p-2 border rounded"
-                />
-                <input
-                  type="text"
-                  placeholder="Subject Combination"
-                  value={formData.subjectCombination}
-                  onChange={(e) => setFormData({ ...formData, subjectCombination: e.target.value })}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              {/* File Upload Area */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center mb-4">
-                <label className="cursor-pointer">
-                  <div className="flex flex-col items-center justify-center">
-                    <FiUpload className="text-blue-500 text-2xl mb-2" />
-                    <p className="text-sm text-gray-600 mb-1">Click to browse or drag and drop files</p>
-                    <p className="text-xs text-gray-500">Accepted formats: {accept.replace(/\./g, '').replace(/,/g, ', ')}</p>
-                  </div>
+              {type === 'school-documents' && (
+                <div className="space-y-4 mb-6">
                   <input
-                    type="file"
-                    className="hidden"
-                    onChange={(e) => {
-                      handleFileChange(e);
-                      setFormData({ ...formData, file: e.target.files?.[0] || null });
-                    }}
-                    accept={accept}
-                    multiple={multiple}
-                    disabled={isUploading}
+                    type="text"
+                    placeholder="School Name"
+                    value={formData.schoolName}
+                    onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
+                    className="w-full p-2 border rounded"
                   />
-                </label>
-              </div>
+                  <input
+                    type="text"
+                    placeholder="School Address"
+                    value={formData.schoolAddress}
+                    onChange={(e) => setFormData({ ...formData, schoolAddress: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  />
+                  <input
+                    type="text"
+                    placeholder="School Contact"
+                    value={formData.schoolContact}
+                    onChange={(e) => setFormData({ ...formData, schoolContact: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  />
+                  <input
+                    type="text"
+                    placeholder="School County"
+                    value={formData.schoolCounty}
+                    onChange={(e) => setFormData({ ...formData, schoolCounty: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Subject Combination"
+                    value={formData.subjectCombination}
+                    onChange={(e) => setFormData({ ...formData, subjectCombination: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+              )}
 
+              {/* Render Template Components Conditionally */}
+              {type === 'record-of-work' && (
+                <RecordOfWorkTemplate formData={formData} setFormData={setFormData} />
+              )}
+
+              {type === 'lesson-plan' && (
+                <LessonPlanTemplate formData={formData} setFormData={setFormData} />
+              )}
+
+              {/* Fallback File Upload for Other Types */}
+              {type !== 'record-of-work' && type !== 'lesson-plan' && (
+                <DocumentFileInput
+                  onFileSelect={(fileList) => {
+                    const selectedFiles = Array.from(fileList);
+                    setFiles(selectedFiles);
+                    setFormData({ ...formData, file: selectedFiles[0] || null });
+                  }}
+                  acceptedTypes={accept}
+                  multiple={multiple}
+                  isUploading={isUploading}
+                />
+              )}
+
+
+              {/* List of selected files */}
               <ul className="space-y-1">
                 {files.map((file, index) => (
                   <li key={index} className="flex items-center text-sm">
@@ -245,7 +253,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
                   </li>
                 ))}
               </ul>
-              {/* Error message */}
+
               {uploadError && (
                 <div className="bg-red-50 text-red-700 p-3 rounded-md mb-4 flex items-center">
                   <FiAlertCircle className="mr-2" />
@@ -291,6 +299,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
       </div>
     </div>
   );
+
 };
 
 export default DocumentUploadModal;

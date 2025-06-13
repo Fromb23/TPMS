@@ -5,6 +5,7 @@ import { StatusCard, QuickAction } from '../components/UI';
 import { DocumentSubmissionPhase } from '../components/DocumentSubmissionPhase';
 import DocumentUploadModal from '../components/DocumentUploadModal';
 import TpTimeline from '../components/TpTimeline';
+import ActiveTPTasks from '../components/ActiveTPTasks';
 import { fetchSchoolDataByStudentId, getDocumentStatusByUserId } from '../services/schoolServices';
 import {
   FiCalendar, FiBook, FiUpload, FiMessageSquare,
@@ -21,27 +22,6 @@ const StudentDashboard = () => {
 
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?.id;
-
-
-  const [tpData, setTpData] = useState({
-    schoolDocuments: {
-      submitted: false,
-      approved: false,
-      files: []
-    },
-    tpDocuments: {
-      schemesOfWork: { submitted: false, approved: false },
-      lessonPlans: { lastSubmitted: null, pendingCount: 3 },
-      timetable: { submitted: false },
-      subjectCombination: { submitted: false }
-    },
-    upcomingAssessment: null,
-    completedAssessments: [],
-    finalDocuments: {
-      submitted: false,
-      approved: false
-    }
-  });
 
   const { data: documentStatus, isLoading: isStatusLoading, isError: isStatusError, error: statusError } = useQuery({
     queryKey: ['student-document-status', userId],
@@ -70,16 +50,17 @@ const StudentDashboard = () => {
   // Simulate phase changes based on TP timeline
   useEffect(() => {
     const determinePhase = () => {
-      if (!tpData.schoolDocuments.submitted) return 'document-submission';
-      if (!tpData.schoolDocuments.approved) return 'pre-tp';
-      if (tpData.finalDocuments.approved) return 'completed';
-      if (tpData.finalDocuments.submitted) return 'post-tp';
-      if (tpData.upcomingAssessment) return 'assessment';
-      return 'active-tp';
+      if (!documentStatus) return 'document-submission';
+
+      if (documentStatus.status === 'PENDING') return 'pre-tp';
+      if (documentStatus.status === 'APPROVED') return 'active-tp';
+      if (documentStatus.status === 'REJECTED') return 'document-submission';
+
+      return 'document-submission';
     };
 
     setCurrentPhase(determinePhase());
-  }, [tpData]);
+  }, [documentStatus]);
 
   // Handle document upload
   const handleUpload = (type) => {
@@ -89,7 +70,7 @@ const StudentDashboard = () => {
 
 
   // Render different content based on current phase
-  console.log("documentStatus", documentStatus);
+  console.log("Current Phase:", currentPhase);
   const renderPhaseContent = () => {
     switch (currentPhase) {
       case 'document-submission': return <DocumentSubmissionPhase
@@ -112,55 +93,7 @@ const StudentDashboard = () => {
         );
 
       case 'active-tp':
-        return (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <StatusCard
-                icon={<FiFileText />}
-                title="Scheme of Work"
-                value={tpData.tpDocuments.schemesOfWork.submitted ? 'Submitted' : 'Pending'}
-                status={tpData.tpDocuments.schemesOfWork.submitted ? 'success' : 'warning'}
-                action={!tpData.tpDocuments.schemesOfWork.submitted ? () => handleUpload('scheme-of-work') : null}
-              />
-
-              <StatusCard
-                icon={<FiBook />}
-                title="Lesson Plans"
-                value={tpData.tpDocuments.lessonPlans.pendingCount > 0 ? `${tpData.tpDocuments.lessonPlans.pendingCount} pending` : 'Up to date'}
-                status={tpData.tpDocuments.lessonPlans.pendingCount > 0 ? 'warning' : 'success'}
-                action={() => handleUpload('lesson-plan')}
-              />
-
-              <StatusCard
-                icon={<FiCalendar />}
-                title="Timetable"
-                value={tpData.tpDocuments.timetable.submitted ? 'Submitted' : 'Pending'}
-                status={tpData.tpDocuments.timetable.submitted ? 'success' : 'warning'}
-                action={!tpData.tpDocuments.timetable.submitted ? () => handleUpload('timetable') : null}
-              />
-
-              <StatusCard
-                icon={<FiUsers />}
-                title="Subject Combination"
-                value={tpData.tpDocuments.subjectCombination.submitted ? 'Submitted' : 'Pending'}
-                status={tpData.tpDocuments.subjectCombination.submitted ? 'success' : 'warning'}
-                action={!tpData.tpDocuments.subjectCombination.submitted ? () => handleUpload('subject-combination') : null}
-              />
-            </div>
-
-            <div className="bg-white p-4 rounded-lg shadow mb-6">
-              <h3 className="font-semibold text-lg mb-3">Daily Tasks</h3>
-              <p className="mb-3">Remember to submit your lesson plans daily and keep your documents updated.</p>
-              <button
-                onClick={() => handleUpload('lesson-plan')}
-                className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center"
-              >
-                <FiUpload className="mr-2" />
-                Submit Today's Lesson Plan
-              </button>
-            </div>
-          </>
-        );
+         return <ActiveTPTasks handleUpload={handleUpload} />;
 
       case 'assessment':
         return (
