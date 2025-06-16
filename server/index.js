@@ -7,6 +7,8 @@ import documentRoutes from './routes/document.routes.js';
 import schoolRoutes from './routes/school.routes.js';
 import lessonPlanRoutes from './routes/lessonPlan.routes.js';
 import recordOfWorkRoutes from './routes/recordOfWork.routes.js';
+import lecturerRoutes from './routes/lecturer.routes.js';
+import studentRoutes from './routes/student.routes.js';
 // import userRoutes from './routes/user.routes.js';
 const app = express();
 const port = 3000;
@@ -20,6 +22,8 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/schools', schoolRoutes);
 app.use('/api/lesson-plans', lessonPlanRoutes);
 app.use('/api/record-of-work', recordOfWorkRoutes);
+app.use('/api/lecturers', lecturerRoutes);
+app.use('/api/students', studentRoutes);
 // app.use('/api/users', userRoutes);
 
 app.listen(port, () => {
