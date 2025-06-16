@@ -185,13 +185,9 @@ const StudentDashboard = () => {
       <div className="space-y-6">
         <TpTimeline currentPhase={currentPhase} documentStatus={documentStatus} />
 
-
-        {/* Phase-specific content */}
         {renderPhaseContent()}
 
-        {/* School Information */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* School Information – conditionally rendered */}
           {documentStatus?.status === "APPROVED" && (
             <section className="bg-white p-4 rounded-lg shadow w-full md:w-1/2">
               <h2 className="text-lg font-semibold mb-4 flex items-center">
@@ -214,7 +210,6 @@ const StudentDashboard = () => {
           )}
 
 
-          {/* Supervisor Information – always rendered */}
           <section className="bg-white p-4 rounded-lg shadow">
             <h2 className="text-lg font-semibold mb-4 flex items-center">
               <FiMapPin className="mr-2 text-blue-500" />

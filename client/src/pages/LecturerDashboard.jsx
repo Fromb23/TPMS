@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { Layout } from '../components/Layout';
 import { Table } from '../components/Table';
+import { StudentProfile } from '../components/StudentProfile';
 import { dummyStudentData } from '../components/DummyData';
-import { 
-  FiHome, FiUser, FiBook, FiCalendar, FiFileText, 
-  FiFilter, FiSearch, FiDownload, FiPlus, FiAlertTriangle, 
-  FiClock, FiCheck, FiMessageSquare 
+import {
+  FiHome, FiUser, FiBook, FiCalendar, FiFileText, FiEye,
+  FiFilter, FiSearch, FiDownload, FiPlus, FiAlertTriangle,
+  FiClock, FiCheck, FiMessageSquare
 } from 'react-icons/fi';
 
 const LecturerDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
@@ -18,7 +20,7 @@ const LecturerDashboard = () => {
     ...student,
     needsAttention: student.status === 'Pending' || Math.random() > 0.7,
     lastContact: ['Today', '2 days ago', '1 week ago'][Math.floor(Math.random() * 3)],
-    pendingActions: Math.random() > 0.5 ? ['Lesson Plan Review', 'Supervision'][Math.floor(Math.random() * 2)] : null,
+    pendingActions: Math.random() > 0.5 ? ['Lesson Plan Review', 'Supervision', 'Incoming supervision'][Math.floor(Math.random() * 2)] : null,
     alertLevel: ['high', 'medium', 'low'][Math.floor(Math.random() * 3)]
   }));
 
@@ -27,8 +29,8 @@ const LecturerDashboard = () => {
   );
 
   const columns = [
-    { 
-      Header: 'Student', 
+    {
+      Header: 'Student',
       accessor: 'name',
       Cell: ({ row }) => (
         <div className="flex items-center">
@@ -43,8 +45,8 @@ const LecturerDashboard = () => {
         </div>
       )
     },
-    { 
-      Header: 'School', 
+    {
+      Header: 'School',
       accessor: 'school',
       Cell: ({ value, row }) => (
         <div className="flex items-center">
@@ -58,8 +60,8 @@ const LecturerDashboard = () => {
         </div>
       )
     },
-    { 
-      Header: 'Last Contact', 
+    {
+      Header: 'Last Contact',
       accessor: 'lastContact',
       Cell: ({ value }) => (
         <div className="flex items-center">
@@ -68,8 +70,8 @@ const LecturerDashboard = () => {
         </div>
       )
     },
-    { 
-      Header: 'Status', 
+    {
+      Header: 'Status',
       accessor: 'status',
       Cell: ({ value, row }) => {
         const statusColors = {
@@ -94,22 +96,22 @@ const LecturerDashboard = () => {
       accessor: 'id',
       Cell: ({ value, row }) => (
         <div className="flex space-x-2">
-          <button 
+          <button
             onClick={() => handleSendMessage(value)}
             className="text-blue-600 hover:text-blue-800 p-1"
             title="Send message"
           >
             <FiMessageSquare />
           </button>
-          <button 
+          <button
             onClick={() => handleViewDetails(value)}
             className="text-blue-600 hover:text-blue-800 p-1"
             title="View details"
           >
-            <FiFileText />
+            <FiEye />
           </button>
           {row.original.needsAttention && (
-            <button 
+            <button
               onClick={() => handleMarkAsReviewed(value)}
               className="text-green-600 hover:text-green-800 p-1"
               title="Mark as reviewed"
@@ -131,7 +133,10 @@ const LecturerDashboard = () => {
   });
 
   const handleViewDetails = (studentId) => {
-    console.log('Viewing student:', studentId);
+    const student = enhancedStudentData.find(s => s.id === studentId);
+    if (student) {
+      setSelectedStudent(student);
+    }
   };
 
   const handleSendMessage = (studentId) => {
@@ -147,8 +152,9 @@ const LecturerDashboard = () => {
   };
 
   return (
-    <Layout 
-      title="Lecturer Dashboard" 
+
+    <Layout
+      title="Lecturer Dashboard"
       role="lecturer"
       breadcrumbs={[
         { label: 'Home', href: '/', icon: <FiHome /> },
@@ -156,7 +162,7 @@ const LecturerDashboard = () => {
       ]}
     >
       {/* Mobile Menu Toggle */}
-      <button 
+      <button
         className="md:hidden fixed bottom-20 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg z-20"
         onClick={() => setShowMobileMenu(!showMobileMenu)}
       >
@@ -177,23 +183,22 @@ const LecturerDashboard = () => {
               <div key={student.id} className="bg-white p-3 rounded-lg shadow-sm border border-red-100">
                 <div className="flex justify-between">
                   <h4 className="font-medium">{student.name}</h4>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    student.alertLevel === 'high' ? 'bg-red-100 text-red-800' :
-                    student.alertLevel === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-blue-100 text-blue-800'
-                  }`}>
+                  <span className={`text-xs px-2 py-1 rounded-full ${student.alertLevel === 'high' ? 'bg-red-100 text-red-800' :
+                      student.alertLevel === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-blue-100 text-blue-800'
+                    }`}>
                     {student.alertLevel} priority
                   </span>
                 </div>
                 <p className="text-sm text-gray-600 mt-1">{student.pendingActions || 'Action required'}</p>
                 <div className="flex justify-end mt-2 space-x-2">
-                  <button 
+                  <button
                     onClick={() => handleSendMessage(student.id)}
                     className="text-xs bg-white border border-blue-500 text-blue-500 px-2 py-1 rounded hover:bg-blue-50"
                   >
                     Message
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleViewDetails(student.id)}
                     className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
                   >
@@ -260,7 +265,7 @@ const LecturerDashboard = () => {
             <option value="Inactive">Inactive</option>
           </select>
 
-          <button 
+          <button
             onClick={handleDownloadReport}
             className="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
@@ -272,11 +277,17 @@ const LecturerDashboard = () => {
 
       {/* Main Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <Table 
-          columns={columns} 
-          data={filteredData} 
+        <Table
+          columns={columns}
+          data={filteredData}
           initialPageSize={5}
         />
+        {selectedStudent && (
+          <StudentProfile
+            student={selectedStudent}
+            onClose={() => setSelectedStudent(null)}
+          />
+        )}
       </div>
     </Layout>
   );

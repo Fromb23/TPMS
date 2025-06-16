@@ -8,6 +8,14 @@ export const dummyStudentData = [
     zone: 'Central',
     status: 'Active',
     lastSubmission: '2023-05-15',
+
+    // 🔽 New additions
+    subjects: 'Mathematics & Physics',
+    documents: [
+      { name: 'Lesson Plan.pdf', url: '/docs/lesson-plan-john.pdf' },
+      { name: 'Supervision Log.docx', url: '/docs/supervision-log-john.docx' }
+    ],
+    scheduleLink: '/schedule/supervision-john'
   },
   {
     id: 2,
@@ -17,6 +25,12 @@ export const dummyStudentData = [
     zone: 'Coastal',
     status: 'Pending Approval',
     lastSubmission: '2023-05-10',
+
+    subjects: 'English & Literature',
+    documents: [
+      { name: 'Lesson Plan.pdf', url: '/docs/lesson-plan-grace.pdf' }
+    ],
+    scheduleLink: '/schedule/supervision-grace'
   },
   {
     id: 3,
@@ -26,6 +40,10 @@ export const dummyStudentData = [
     zone: 'Rift Valley',
     status: 'Inactive',
     lastSubmission: '2023-04-28',
+
+    subjects: 'Biology & Chemistry',
+    documents: [],
+    scheduleLink: '/schedule/supervision-peter'
   },
 ];
 
