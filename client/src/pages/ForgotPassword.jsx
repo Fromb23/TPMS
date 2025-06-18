@@ -1,5 +1,7 @@
+import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { FaEnvelope, FaLock, FaCheck, FaArrowRight } from 'react-icons/fa';
+import { verifyUserEmail, resetUserPassword } from '../services/authServices';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -9,20 +11,48 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const verifyEmail = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      // Replace with actual API call to verify email
-      await new Promise(resolve => setTimeout(resolve, 1000));
+  const { mutate } = useMutation({
+    mutationFn: verifyUserEmail,
+    onSuccess: (data) => {
+      localStorage.setItem('user', JSON.stringify(data));
       setEmailVerified(true);
       setError('');
-    } catch (err) {
-      setError('Email not found. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    },
+    onError: (err) => {
+      setError(err.message || 'Failed to verify email. Please try again.');
+      setEmailVerified(false);
+      setEmail('');
+    },
+    retry: false,
+    retryDelay: 1000,
+  });
+  const verifyEmail =  (e) => { 
+    e.preventDefault();
+
+    mutate(email);
   };
+
+  const {mutate: resetPassword, isLoading} = useMutation({
+    mutationFn: resetUserPassword,
+    onSuccess: () => {
+      setEmail('');
+      setPassword('');
+      setNewPassword('');
+      setError('');
+      setEmailVerified(false);
+      localStorage.removeItem('user');
+      alert('Password reset successfully. You can now log in with your new password.');
+      window.location.href = '/login';
+    },
+    onError: (err) => {
+      setError(err.message || 'Failed to reset password. Please try again.');
+      setEmailVerified(true);
+      setPassword('');
+      setNewPassword('');
+    },
+    retry: false,
+    retryDelay: 1000,
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,17 +60,10 @@ const ForgotPassword = () => {
       setError('Passwords do not match');
       return;
     }
-    setLoading(true);
-    try {
-      // Replace with actual password reset API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('Password updated successfully!');
-      // Redirect to login or other page after success
-    } catch (err) {
-      setError('Failed to update password. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    const payload = {
+      password,
+    };
+    resetPassword(payload)
   };
 
   return (
