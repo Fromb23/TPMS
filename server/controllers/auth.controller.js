@@ -105,7 +105,7 @@ export const verifyEmail = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     const token = jwt.sign({ userId: user.id }, process.env.SESSION_SECRET, { expiresIn: '1h' });
-    
+
     res.status(200).json({ token });
   } catch (error) {
     console.error(error);
@@ -115,7 +115,6 @@ export const verifyEmail = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   const userId  = req.user.userId;
-  console.log('userId', userId);
   const { password } = req.body;
 
   try {
