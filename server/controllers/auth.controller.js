@@ -1,5 +1,5 @@
-import  { PrismaClient }  from '@prisma/client';
-import bcrypt  from 'bcrypt';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
@@ -83,12 +83,61 @@ export const login = async (req, res) => {
 
     const token = jwt.sign({ userId: user.id }, process.env.SESSION_SECRET, { expiresIn: '1d' });
 
-    res.status(200).json({ message: 'Login successful', user , token });
+    res.status(200).json({ message: 'Login successful', user, token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'An error occurred while logging in' });
   }
 };
+
+// Verify Email
+export const verifyEmail = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const token = jwt.sign({ userId: user.id }, process.env.SESSION_SECRET, { expiresIn: '1h' });
+    
+    res.status(200).json({ token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while verifying the email' });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const userId  = req.user.userId;
+  console.log('userId', userId);
+  const { password } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await prisma.user.update({
+      where: {  id: userId },
+      data: { password: hashedPassword },
+    });
+
+    res.status(200).json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while resetting the password' });
+  }
+}
 
 // Logout
 export const logout = (req, res) => {
