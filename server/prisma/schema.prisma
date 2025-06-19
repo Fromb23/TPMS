@@ -93,6 +93,9 @@ model Document {
 model Zone {
   id                   String                 @id @default(uuid())
   name                 String                 @unique
+  county               String?
+  constituencies       Json?
+  coordinator          String?
   schools              School[]
   lecturerZoneRequest  LecturerZoneRequest[]
   lecturerZoneAssigned LecturerZoneAssigned[]
@@ -140,16 +143,16 @@ model TpApplication {
 }
 
 model RecordOfWork {
-  id             String    @id @default(uuid())
-  student        Student   @relation(fields: [studentId], references: [id])
-  studentId      String
-  school         String
-  learningArea   String
-  subject        String
-  teacher        String
-  records        Json      // Store an array or structured entries
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id           String   @id @default(uuid())
+  student      Student  @relation(fields: [studentId], references: [id])
+  studentId    String
+  school       String
+  learningArea String
+  subject      String
+  teacher      String
+  records      Json // Store an array or structured entries
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model LecturerZoneAssigned {
