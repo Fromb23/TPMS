@@ -36,3 +36,25 @@ export const getAllZones = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 }
+
+export const updateAZone = async (req, res) => {
+    const { id } = req.params;
+    const { name, county, constituencies, coordinator } = req.body;
+
+    try {
+        const updatedZone = await prisma.zone.update({
+            where: { id },
+            data: {
+                name,
+                county,
+                constituencies,
+                coordinator,
+            },
+        });
+
+        res.status(200).json(updatedZone);
+    } catch (error) {
+        console.error("Error updating zone:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
