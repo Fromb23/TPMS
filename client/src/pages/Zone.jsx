@@ -4,7 +4,7 @@ import { Layout } from '../components/Layout';
 import { Table } from '../components/Table';
 import Modal from '../components/Modal';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { createNewZone, fetchAllZones } from '../services/zoneServices';
+import { createNewZone, fetchAllZones, updateAZone } from '../services/zoneServices';
 
 const ZonesDashboard = () => {
   // Data
@@ -107,6 +107,19 @@ const ZonesDashboard = () => {
       alert("Failed to create zone. Please try again.");
     }
   });
+
+  const { mutate: updateZone } = useMutation({
+    mutationFn: ({ id, data }) => updateAZone(id, data),
+      onSuccess: (updatedZone) => {
+      setZones(prev => prev.map(z => z.id === updatedZone.id ? updatedZone : z));
+      setShowModal(false);
+      resetForm();
+    },
+    onError: (error) => {
+      console.error("Error updating zone:", error);
+      alert("Failed to update zone. Please try again.");
+    }
+  });
   const handleZone = (action, zone) => {
     if (action === 'create') {
       createZone({
@@ -117,11 +130,15 @@ const ZonesDashboard = () => {
         lecturers: formData.lecturers,
       });
     } else if (action === 'update') {
-      setZones(zones.map(z => z.id === zone.id ? {
-        ...z, name: formData.name, county: formData.county,
-        constituencies: formData.constituencies, coordinator: formData.coordinator,
-        lecturers: formData.lecturers.length
-      } : z));
+      const updatedZone = {
+        id: zone.id,
+        name: formData.name,
+        county: formData.county,
+        constituencies: formData.constituencies,
+        coordinator: formData.coordinator,
+        lecturers: formData.lecturers,
+      };
+      updateZone({ id: zone.id, data: {...updatedZone} });
     } else if (action === 'delete' && window.confirm('Delete this zone?')) {
       setZones(zones.filter(z => z.id !== zone.id));
     }

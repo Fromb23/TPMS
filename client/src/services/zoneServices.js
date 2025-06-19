@@ -31,3 +31,20 @@ export const fetchAllZones = async () => {
     throw error;
   }
 }
+
+export const updateAZone = async (zoneId, zoneData) => {
+  console.log("Updating zone with ID:", zoneId, "and data:", zoneData);
+  const token = localStorage.getItem("token");
+  try {
+    const response = await apiClient.put(`/zones/${zoneId}`, zoneData, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating zone:", error);
+    throw error;
+  }
+}
