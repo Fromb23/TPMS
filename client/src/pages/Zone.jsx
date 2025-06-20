@@ -185,7 +185,7 @@ const ZonesDashboard = () => {
         name: formData.name,
         county: formData.county,
         constituencies: formData.constituencies,
-        coordinator: formData.coordinator,
+        coordinatorId: formData.coordinator,
         lecturers: formData.lecturers,
       };
       updateZone({ id: zone.id, data: { ...updatedZone } });
