@@ -63,7 +63,7 @@ export const getAllZones = async (req, res) => {
 
 export const updateAZone = async (req, res) => {
     const { id } = req.params;
-    const { name, county, constituencies, coordinator } = req.body;
+    const { name, county, constituencies, coordinatorId } = req.body;
 
     try {
         const updatedZone = await prisma.zone.update({
@@ -72,7 +72,7 @@ export const updateAZone = async (req, res) => {
                 name,
                 county,
                 constituencies,
-                coordinator,
+                coordinatorId,
             },
         });
 
