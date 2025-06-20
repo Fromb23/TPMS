@@ -5,7 +5,9 @@ const prisma = new PrismaClient();
 export const getLecturers = async (req, res) => {
   try {
     const lecturers = await prisma.lecturer.findMany({
-      include: {
+      select: {
+        id: true,
+        department: true,
         user: true,
       },
       orderBy: {

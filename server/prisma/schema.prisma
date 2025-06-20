@@ -52,13 +52,16 @@ model Lecturer {
   id                   String                 @id @default(uuid())
   department           String
   userId               String
+  user                 User                   @relation(fields: [userId], references: [id])
+
+  coordinatedZone      Zone?                  @relation("ZoneCoordinator") // one-to-one inverse
+
   lecturerZoneAssigned LecturerZoneAssigned[]
   lecturerZoneRequest  LecturerZoneRequest[]
   supervisionSchedule  SupervisionSchedule[]
   supervisionVisit     SupervisionVisit[]
   report               Report[]
   grade                Grade[]
-  user                 User                   @relation(fields: [userId], references: [id])
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
 
@@ -95,7 +98,10 @@ model Zone {
   name                 String                 @unique
   county               String?
   constituencies       Json?
-  coordinator          String?
+
+  coordinatorId        String?                @unique
+  coordinator          Lecturer?              @relation("ZoneCoordinator", fields: [coordinatorId], references: [id])
+
   schools              School[]
   lecturerZoneRequest  LecturerZoneRequest[]
   lecturerZoneAssigned LecturerZoneAssigned[]

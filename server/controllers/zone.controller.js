@@ -3,7 +3,8 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export const createZone = async (req, res) => {
-    const { name, county, constituencies, coordinator, } = req.body;
+    const { name, county, constituencies, coordinatorId, } = req.body;
+    console.log("Creating zone with data:", req.body);
 
     try {
         const newZone = await prisma.zone.create({
@@ -11,7 +12,7 @@ export const createZone = async (req, res) => {
                 name,
                 county,
                 constituencies,
-                coordinator,
+                coordinatorId,
             },
         });
 
@@ -23,19 +24,42 @@ export const createZone = async (req, res) => {
 }
 
 export const getAllZones = async (req, res) => {
-    try {
-        const zones = await prisma.zone.findMany();
+  try {
+    const zones = await prisma.zone.findMany({
+      include: {
+        coordinator: {
+          include: {
+            user: {
+              select: {
+                fullName: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
-        if (!zones || zones.length === 0) {
-            return res.status(404).json({ message: "No zones found" });
-        }
-
-        res.status(200).json(zones);
-    } catch (error) {
-        console.error("Error fetching zones:", error);
-        res.status(500).json({ message: "Internal server error" });
+    if (!zones || zones.length === 0) {
+      return res.status(404).json({ message: "No zones found" });
     }
-}
+
+    // Format the zones
+    const formattedZones = zones.map(zone => ({
+      id: zone.id,
+      name: zone.name,
+      county: zone.county,
+      constituencies: zone.constituencies,
+      coordinator: zone.coordinator?.user?.fullName || null,
+      createdAt: zone.createdAt,
+      updatedAt: zone.updatedAt,
+    }));
+
+    res.status(200).json(formattedZones);
+  } catch (error) {
+    console.error("Error fetching zones:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 export const updateAZone = async (req, res) => {
     const { id } = req.params;
