@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Layout } from '../components/Layout';
 import { Table } from '../components/Table';
@@ -11,13 +11,16 @@ import {
 } from 'react-icons/fi';
 import { fetchAllLecturers } from '../services/lecturerServices';
 import { fetchAllStudents } from '../services/studentServices';
+import { StudentProfile } from '../components/StudentProfile';
 
 const AdminDashboard = () => {
+    const [selectedStudent, setSelectedStudent] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedDocument, setSelectedDocument] = useState(null);
     const [activeTab, setActiveTab] = useState('students');
     const [activeStat, setActiveStat] = useState('overview');
+    const navigate = useNavigate();
 
     // Enhanced data with admin-specific fields
     const { data: students, isLoading: studentsLoading } = useQuery({
@@ -38,7 +41,6 @@ const AdminDashboard = () => {
         lastLogin: ['Today', '2 days ago', '1 week ago'][Math.floor(Math.random() * 3)]
     })) || [];
 
-    // Fetch data using React Query (mocked for this example)
     const { data: lecturers, isLoading: lecturersLoading } = useQuery({
         queryKey: ['lecturers'],
         queryFn: fetchAllLecturers,
@@ -55,6 +57,17 @@ const AdminDashboard = () => {
         }))
         : [];
 
+    const handleStudentClick = (student) => {
+        console.log("Selected student:", student);
+        // setSelectedStudent(student);
+        navigate(`/admin-dashboard/${student?.user?.id}`);
+    };
+    const handleViewDocuments = (student) => {
+        navigate(`/admin-dashboard/${student.user.id}/documents`);
+    };
+    const closeStudentProfile = () => {
+        setSelectedStudent(null);
+    };
     const activeData = activeTab === 'students' ? enhancedStudentData : enhancedLecturerData;
 
     // Stats calculations
@@ -77,16 +90,30 @@ const AdminDashboard = () => {
     const studentColumns = [
         {
             Header: 'Student',
-            accessor: 'name',
-            Cell: ({ row }) => (
-                <div className="flex items-center">
-                    <FiUser className={`mr-2 ${row.original.isBlocked ? 'text-red-500' : 'text-blue-600'}`} />
-                    <div>
-                        <p className="font-medium">{row.original?.user.fullName}</p>
-                        <p className="text-xs text-gray-500">{row.original?.user.id}</p>
-                    </div>
-                </div>
-            )
+            accessor: 'student',
+            Cell: ({ row }) => {
+                const student = row.original;
+                const initials = student?.user?.fullName
+                    ?.split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .toUpperCase();
+
+                return (
+                    <button
+                        onClick={() => handleStudentClick(student)}
+                        className="flex items-center space-x-3 hover:bg-gray-100 px-2 py-2 rounded transition w-full text-left"
+                    >
+                        <div className="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">
+                            {initials}
+                        </div>
+                        <div className="text-left">
+                            <p className="font-medium">{student?.user?.fullName}</p>
+                            <p className="text-xs text-gray-500">{student?.user?.id}</p>
+                        </div>
+                    </button>
+                );
+            }
         },
         {
             Header: 'Documents',
@@ -133,8 +160,8 @@ const AdminDashboard = () => {
                     <div className="flex items-center">
                         <span
                             className={`px-2 py-1 rounded-full text-xs font-medium ${isVerified
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-yellow-100 text-yellow-800'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
                                 }`}
                         >
                             {isVerified ? 'Verified' : 'Pending'}
@@ -149,7 +176,7 @@ const AdminDashboard = () => {
             Cell: ({ row }) => (
                 <div className="flex space-x-2">
                     <button
-                        onClick={() => setSelectedDocument(row.original)}
+                        onClick={() => handleViewDocuments(row.original)}
                         className="text-blue-600 hover:text-blue-800 p-1"
                         title="View documents"
                     >
@@ -265,6 +292,14 @@ const AdminDashboard = () => {
                 { label: 'Admin Dashboard', href: '/admin' }
             ]}
         >
+            {/* {selectedStudent && !selectedDocument && (
+                <DocumentViewer
+                    student={selectedStudent}
+                    onClose={() => setSelectedStudent(null)}
+                    documents={selectedStudent.documents}
+                    isBlocked={selectedStudent.isBlocked}
+                />
+            )} */}
             {/* Tabs for Students/Lecturers */}
             <div className="flex border-b mb-6">
                 <button
@@ -411,9 +446,11 @@ const AdminDashboard = () => {
             {selectedDocument && (
                 <DocumentViewer
                     user={selectedDocument}
+                    documents={selectedDocument}
                     onClose={() => setSelectedDocument(null)}
                 />
             )}
+            {/* <Outlet /> */}
         </Layout>
 
     );

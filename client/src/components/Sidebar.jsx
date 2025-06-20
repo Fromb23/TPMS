@@ -21,9 +21,9 @@ export const Sidebar = ({ role, setSidebarOpen }) => {
   ];
 
   const adminLinks = [
-    { name: 'Dashboard', href: '/admin/dashboard', icon: <FiHome /> },
-    { name: 'Students', href: '/admin/students', icon: <FiUsers /> },
-    { name: 'Lecturers', href: '/admin/lecturers', icon: <FiAward /> },
+    { name: 'Dashboard', href: '/admin-dashboard', icon: <FiHome /> },
+    // { name: 'Students', href: '/admin/students', icon: <FiUsers /> },
+    // { name: 'Lecturers', href: '/admin/lecturers', icon: <FiAward /> },
     { name: 'TP Period', href: '/admin/tp-period', icon: <FiClock /> },
     { name: 'Zones', href: '/admin/zones', icon: <FiMap /> },
     { name: 'Reports', href: '/admin/reports', icon: <FiBarChart2 /> },

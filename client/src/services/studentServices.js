@@ -27,3 +27,34 @@ export const fetchStudentByLecturerId = async (lecturerId) => {
     throw error;
   }
 } 
+
+export const updateStudentStatusById = async ({ id, ...status }) => {
+  try {
+    const response = await apiClient.put(`/students/${id}/status`, status, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating student status:', error);
+    throw error;
+  }
+};
+
+export const getStudentById = async (studentId) => {
+  console.log('Fetching student by ID:', studentId);
+  try {
+    const response = await apiClient.get(`/students/${studentId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching student by ID:', error);
+    throw error;
+  }
+}

@@ -6,10 +6,13 @@ import LecturerDashboard from './pages/LecturerDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import PrivateRoute from './components/PrivateRoute';
+import TpPeriod from './components/TpPeriod';
 import ZoneDashboard from './pages/Zone';
 import NotAuthorized from './pages/NotAuthorized';
 
 import { Outlet } from 'react-router-dom';
+import { StudentProfile } from './components/StudentProfile';
+import StudentProfileWrapper from './components/StudentProfileWrapper';
 
 function App() {
   return (
@@ -19,13 +22,11 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* Admin Routes */}
-        <Route path="/admin-dashboard" element={
-          <PrivateRoute allowedRoles={['LECTURER', 'STUDENT', 'ADMIN']}>
-            <AdminDashboard />
-          </PrivateRoute>
-        }>
+        <Route path="/admin-dashboard" element={<PrivateRoute allowedRoles={['ADMIN', 'LECTURER']} />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path=":studentId/*" element={<StudentProfileWrapper />} />
         </Route>
+
         <Route
           path="/admin/zones"
           element={
@@ -34,6 +35,13 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route path="/admin/tp-period" element={
+          <PrivateRoute allowedRoles={['ADMIN', 'LECTURER']}>
+            <Outlet />
+          </PrivateRoute>
+        }>
+          <Route index element={<TpPeriod />} />
+        </Route>
 
         {/* Lecturer */}
         <Route path="/lecturer-dashboard" element={

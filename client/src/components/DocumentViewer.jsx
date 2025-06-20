@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import {
   FiX, FiFileText, FiDownload, FiCheck, FiEye,
-  FiClock, FiAlertCircle, FiUser, FiMail, FiPhone
+  FiClock, FiAlertCircle, FiUser, FiMail, FiPhone,
+  FiBook
 } from 'react-icons/fi';
+import { StudentProfile } from './StudentProfile';
 
 const DocumentViewer = ({ user, onClose }) => {
   const [selectedDoc, setSelectedDoc] = useState(null);
@@ -88,6 +90,7 @@ const DocumentViewer = ({ user, onClose }) => {
 
         {/* User Info */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50">
+          {/* <StudentProfile student={user} /> */}
           <div className="flex items-center">
             <FiMail className="mr-2 text-gray-500" />
             <span>{user.email || 'No email provided'}</span>
