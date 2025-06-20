@@ -5,12 +5,13 @@ import { Table } from '../components/Table';
 import Modal from '../components/Modal';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { createNewZone, fetchAllZones, updateAZone, deleteZoneById } from '../services/zoneServices';
+import { fetchAllLecturers } from '../services/lecturerServices';
 
 const ZonesDashboard = () => {
   // Data
   const [counties, setCounties] = useState(
     [
-      { id: 1, name: 'Nairobi'},
+      { id: 1, name: 'Nairobi' },
       { id: 2, name: 'Mombasa' },
       { id: 3, name: 'Kisumu' },
       { id: 4, name: 'Nakuru' },
@@ -20,16 +21,11 @@ const ZonesDashboard = () => {
       { id: 8, name: 'Machakos' },
       { id: 9, name: 'Kakamega' },
       { id: 10, name: 'Garissa' }
-      ]);
-      
+    ]);
+
   const [zones, setZones] = useState([]);
 
-  const [lecturers] = useState([
-    { id: 1, name: 'Dr. Jane Smith', email: 'jane@university.ac.ke', isZoneCoordinator: true, zones: ['Zone A'] },
-    { id: 2, name: 'Prof. John Doe', email: 'john@university.ac.ke', isZoneCoordinator: true, zones: ['Zone B'] },
-    { id: 3, name: 'Dr. James Kariuki', email: 'james@university.ac.ke', isZoneCoordinator: true, zones: ['Zone 1'] },
-    { id: 4, name: 'Dr. Mary Wambui', email: 'mary@university.ac.ke', isZoneCoordinator: false, zones: ['Zone A'] },
-  ]);
+  const [lecturers, setLecturers] = useState([]);
 
   // UI State
   const [showModal, setShowModal] = useState(false);
@@ -50,6 +46,35 @@ const ZonesDashboard = () => {
     )
   );
 
+  // Fetch lecturers
+  const { data: allLecturers, isLoading: lecturersLoading, isError: lecturersError } = useQuery({
+    queryKey: ['lecturers'],
+    queryFn: fetchAllLecturers,
+    staleTime: 5 * 60 * 1000,
+    onSuccess: (data) => {
+      const names = data.map(l => l?.user.name);
+      setLecturers(names);
+    },
+    onError: (error) => {
+      console.error("Error fetching lecturers:", error);
+      alert("Failed to load lecturers. Please try again later.");
+    }
+  });
+  useEffect(() => {
+    if (allLecturers) {
+      const names = allLecturers.map(l => (
+        {
+          name: l?.user.fullName,
+          id: l.id,
+          email: l?.user.email,
+        }
+      )
+      );
+      setLecturers(names);
+    }
+  }, [allLecturers]);
+  console.log("Lecturers:", lecturers);
+
   // Fetch all zones
   const { data: allZones, isLoading, isError } = useQuery({
     queryKey: ['zones'],
@@ -69,28 +94,28 @@ const ZonesDashboard = () => {
     }
   }, [allZones]);
   useEffect(() => {
-  if (!zones || zones.length === 0) return;
+    if (!zones || zones.length === 0) return;
 
-  const countyMap = {};
+    const countyMap = {};
 
-  zones.forEach(zone => {
-    const { county, schools = 0 } = zone;
+    zones.forEach(zone => {
+      const { county, schools = 0 } = zone;
 
-    if (!countyMap[county]) {
-      countyMap[county] = {
-        id: Object.keys(countyMap).length + 1,
-        name: county,
-        zones: 1,
-        schools: schools || 0,
-      };
-    } else {
-      countyMap[county].zones += 1;
-      countyMap[county].schools += schools || 0;
-    }
-  });
+      if (!countyMap[county]) {
+        countyMap[county] = {
+          id: Object.keys(countyMap).length + 1,
+          name: county,
+          zones: 1,
+          schools: schools || 0,
+        };
+      } else {
+        countyMap[county].zones += 1;
+        countyMap[county].schools += schools || 0;
+      }
+    });
 
-  setCounties(Object.values(countyMap));
-}, [zones]);
+    setCounties(Object.values(countyMap));
+  }, [zones]);
 
   const handleInputChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -122,7 +147,7 @@ const ZonesDashboard = () => {
 
   const { mutate: updateZone } = useMutation({
     mutationFn: ({ id, data }) => updateAZone(id, data),
-      onSuccess: (updatedZone) => {
+    onSuccess: (updatedZone) => {
       setZones(prev => prev.map(z => z.id === updatedZone.id ? updatedZone : z));
       setShowModal(false);
       resetForm();
@@ -151,7 +176,7 @@ const ZonesDashboard = () => {
         name: formData.name,
         county: formData.county,
         constituencies: formData.constituencies,
-        coordinator: formData.coordinator,
+        coordinatorId: formData.coordinator,
         lecturers: formData.lecturers,
       });
     } else if (action === 'update') {
@@ -163,7 +188,7 @@ const ZonesDashboard = () => {
         coordinator: formData.coordinator,
         lecturers: formData.lecturers,
       };
-      updateZone({ id: zone.id, data: {...updatedZone} });
+      updateZone({ id: zone.id, data: { ...updatedZone } });
     } else if (action === 'delete' && window.confirm(`Are you sure you want to delete the zone "${zone.name}"? This action cannot be undone.`)) {
       try {
         deleteZone(zone.id);
@@ -264,7 +289,8 @@ const ZonesDashboard = () => {
       <Modal isOpen={showModal} onClose={() => {
         setShowModal(false);
         setCurrentZone(null);
-        resetForm(); }}
+        resetForm();
+      }}
         title={currentZone ? `Edit ${currentZone.name}` : 'Create New Zone'}>
         <div className="space-y-4">
           <div>
@@ -304,7 +330,7 @@ const ZonesDashboard = () => {
             <select name="coordinator" value={formData.coordinator} onChange={handleInputChange}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
               <option value="">Select Coordinator</option>
-              {lecturers.map(l => <option key={l.id} value={l.name}>{l.name} ({l.email})</option>)}
+              {lecturers.map(l => <option key={l.id} value={l.id}>{l.name} ({l.email})</option>)}
             </select>
           </div>
 
