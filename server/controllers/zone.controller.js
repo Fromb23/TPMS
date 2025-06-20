@@ -58,3 +58,18 @@ export const updateAZone = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 }
+
+export const deleteZone = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedZone = await prisma.zone.delete({
+            where: { id },
+        });
+
+        res.status(200).json(deletedZone);
+    } catch (error) {
+        console.error("Error deleting zone:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
