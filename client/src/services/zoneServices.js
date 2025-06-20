@@ -48,3 +48,19 @@ export const updateAZone = async (zoneId, zoneData) => {
     throw error;
   }
 }
+
+export const deleteZoneById = async (zoneId) => {
+  const token = localStorage.getItem("token");
+  try {
+    const response = await apiClient.delete(`/zones/${zoneId}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting zone:", error);
+    throw error;
+  }
+}

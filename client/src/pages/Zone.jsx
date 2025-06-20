@@ -4,12 +4,24 @@ import { Layout } from '../components/Layout';
 import { Table } from '../components/Table';
 import Modal from '../components/Modal';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { createNewZone, fetchAllZones, updateAZone } from '../services/zoneServices';
+import { createNewZone, fetchAllZones, updateAZone, deleteZoneById } from '../services/zoneServices';
 
 const ZonesDashboard = () => {
   // Data
-  const [counties, setCounties] = useState([]);
-
+  const [counties, setCounties] = useState(
+    [
+      { id: 1, name: 'Nairobi'},
+      { id: 2, name: 'Mombasa' },
+      { id: 3, name: 'Kisumu' },
+      { id: 4, name: 'Nakuru' },
+      { id: 5, name: 'Eldoret' },
+      { id: 6, name: 'Nyeri' },
+      { id: 7, name: 'Meru' },
+      { id: 8, name: 'Machakos' },
+      { id: 9, name: 'Kakamega' },
+      { id: 10, name: 'Garissa' }
+      ]);
+      
   const [zones, setZones] = useState([]);
 
   const [lecturers] = useState([
@@ -120,6 +132,19 @@ const ZonesDashboard = () => {
       alert("Failed to update zone. Please try again.");
     }
   });
+
+  const { mutate: deleteZone } = useMutation({
+    mutationFn: (id) => deleteZoneById(id),
+    onSuccess: (deletedZone) => {
+      setZones(prev => prev.filter(z => z.id !== deletedZone.id));
+      setShowModal(false);
+      resetForm();
+    },
+    onError: (error) => {
+      console.error("Error deleting zone:", error);
+      alert("Failed to delete zone. Please try again.");
+    }
+  });
   const handleZone = (action, zone) => {
     if (action === 'create') {
       createZone({
@@ -139,8 +164,13 @@ const ZonesDashboard = () => {
         lecturers: formData.lecturers,
       };
       updateZone({ id: zone.id, data: {...updatedZone} });
-    } else if (action === 'delete' && window.confirm('Delete this zone?')) {
-      setZones(zones.filter(z => z.id !== zone.id));
+    } else if (action === 'delete' && window.confirm(`Are you sure you want to delete the zone "${zone.name}"? This action cannot be undone.`)) {
+      try {
+        deleteZone(zone.id);
+      } catch (error) {
+        console.error("Error deleting zone:", error);
+        alert("Failed to delete zone. Please try again.");
+      }
     }
     setShowModal(false);
     resetForm();
