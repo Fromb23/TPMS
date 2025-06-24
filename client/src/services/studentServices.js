@@ -11,7 +11,6 @@ export const fetchAllStudents = async () => {
         'Content-Type': 'application/json',
       },
     });
-console.log("Fourth student's document type:", response.data[3]?.documents?.[0]?.status);
     return response.data;
   } catch (error) {
     console.error('Error fetching students:', error);

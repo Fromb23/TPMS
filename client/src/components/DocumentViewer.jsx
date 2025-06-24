@@ -1,61 +1,56 @@
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
   FiX, FiFileText, FiDownload, FiCheck, FiEye,
   FiClock, FiAlertCircle, FiUser, FiMail, FiPhone,
   FiBook
 } from 'react-icons/fi';
+import { updateDocumentStatus } from '../services/documentServices';
+
 
 
 const DocumentViewer = ({ user, onClose }) => {
+  console.log("user passed as a prop to viewer: ", user)
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [approvalStatus, setApprovalStatus] = useState({});
 
-  // Mock document data - in a real app this would come from props or API
-  const documents = [
-    {
-      id: 'tp',
-      title: 'Teaching Practice Report',
-      submitted: user.documents?.tp || false,
-      date: '2023-05-15',
-      status: approvalStatus.tp || 'pending',
-      file: '/sample-docs/tp-report.pdf'
+
+  const documentMap = {
+    TP_APPLICATION: 'Teaching Practice Report',
+    TP_TIMETABLE: 'School Timetable',
+    TP_ASSESSMENT: 'Assessment Documents',
+    TP_RECORDS: 'Records of Work'
+  };
+
+  const documents = (user.documents || []).map(doc => ({
+    id: doc.id,
+    title: documentMap[doc.type] || doc.type,
+    submitted: true,
+    status: doc.status?.toLowerCase() || 'pending',
+    file: doc.url || '',
+    date: new Date(doc.createdAt).toLocaleDateString(),
+    type: doc.type
+  }));
+
+  const { mutate: updateDocStatus, isLoading } = useMutation({
+    mutationFn: updateDocumentStatus,
+    onSuccess: (data) => {
+      alert(`Document status updated for ${user?.fullName}`);
+      window.location.reload();
     },
-    {
-      id: 'timetable',
-      title: 'School Timetable',
-      submitted: user.documents?.timetable || false,
-      date: '2023-05-10',
-      status: approvalStatus.timetable || 'pending',
-      file: '/sample-docs/timetable.pdf'
-    },
-    {
-      id: 'assessment',
-      title: 'Assessment Documents',
-      submitted: user.documents?.assessment || false,
-      date: '2023-05-12',
-      status: approvalStatus.assessment || 'pending',
-      file: '/sample-docs/assessment.pdf'
-    },
-    {
-      id: 'records',
-      title: 'Records of Work',
-      submitted: user.documents?.records || false,
-      date: '2023-05-08',
-      status: approvalStatus.records || 'pending',
-      file: '/sample-docs/records.pdf'
+    onError: (error) => {
+      console.error("Error updating document status:", error);
     }
-  ];
+  });
 
   const handleApprove = (docId) => {
     setApprovalStatus(prev => ({ ...prev, [docId]: 'approved' }));
-    // In a real app, you would make an API call here
-    console.log(`Approved ${docId} for ${user.name}`);
+    updateDocStatus({ documentId: docId, status: 'APPROVED' });
   };
 
   const handleReject = (docId) => {
     setApprovalStatus(prev => ({ ...prev, [docId]: 'rejected' }));
-    // In a real app, you would make an API call here
-    console.log(`Rejected ${docId} for ${user.name}`);
+    updateDocStatus({ documentId: docId, status: 'REJECTED' });
   };
 
   const handleDownload = (file) => {
@@ -78,7 +73,7 @@ const DocumentViewer = ({ user, onClose }) => {
         <div className="flex justify-between items-center border-b p-4">
           <h2 className="text-xl font-bold flex items-center">
             <FiUser className="mr-2 text-blue-500" />
-            {user.name}'s Documents
+            {user?.user?.fullName}'s Documents
           </h2>
           <button
             onClick={onClose}
@@ -93,7 +88,7 @@ const DocumentViewer = ({ user, onClose }) => {
           {/* <StudentProfile student={user} /> */}
           <div className="flex items-center">
             <FiMail className="mr-2 text-gray-500" />
-            <span>{user.email || 'No email provided'}</span>
+            <span>{user?.user?.email || 'No email provided'}</span>
           </div>
           <div className="flex items-center">
             <FiPhone className="mr-2 text-gray-500" />
@@ -157,34 +152,61 @@ const DocumentViewer = ({ user, onClose }) => {
                     </button>
                   </div>
                 </div>
+
                 <div className="flex-1 p-4 overflow-y-auto">
                   {selectedDoc.submitted ? (
                     <>
-                      <div className="bg-gray-100 rounded-lg p-4 mb-4 flex items-center justify-center h-64">
-                        <div className="text-center">
-                          <FiEye className="mx-auto text-4xl text-gray-400 mb-2" />
-                          <p className="text-gray-600">Document preview would appear here</p>
-                          <p className="text-sm text-gray-500 mt-2">
-                            {selectedDoc.file} - {selectedDoc.date}
-                          </p>
-                        </div>
+                      {/* --- Preview --- */}
+                      <div className="bg-gray-100 rounded-lg p-4 mb-4 h-64">
+                        {selectedDoc.file && (
+                          selectedDoc.file.toLowerCase().endsWith('.pdf') ? (
+                            <iframe
+                              src={`http://localhost:3000/uploads/${encodeURIComponent(selectedDoc.file)}`}
+                              title="PDF Preview"
+                              className="w-full h-full rounded"
+                            />
+                          ) : (
+                            <img
+                              src={`http://localhost:3000/uploads/${encodeURIComponent(selectedDoc.file)}`}
+                              alt="Document Preview"
+                              className="w-full h-full object-contain rounded"
+                            />
+                          )
+                        )}
                       </div>
+                      <p className="text-sm text-gray-500 mt-2 text-center">
+                        <a
+                          href={`http://localhost:3000/uploads/${encodeURIComponent(selectedDoc.file)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 underline"
+                        >
+                          View Document
+                        </a>{" "}
+                        - {selectedDoc.date}
+                      </p>
                       <div className="flex justify-end space-x-3 mt-4">
-                        <button
-                          onClick={() => handleReject(selectedDoc.id)}
-                          className="flex items-center px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
-                        >
-                          <FiAlertCircle className="mr-2" />
-                          Reject
-                        </button>
-                        <button
-                          onClick={() => handleApprove(selectedDoc.id)}
-                          className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                        >
-                          <FiCheck className="mr-2" />
-                          Approve
-                        </button>
+                        {selectedDoc.status !== 'approved' && (
+                          <button
+                            onClick={() => handleApprove(selectedDoc.id)}
+                            className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                          >
+                            <FiCheck className="mr-2" />
+                            Approve
+                          </button>
+                        )}
+
+                        {selectedDoc.status !== 'rejected' && (
+                          <button
+                            onClick={() => handleReject(selectedDoc.id)}
+                            className="flex items-center px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                          >
+                            <FiAlertCircle className="mr-2" />
+                            Reject
+                          </button>
+                        )}
                       </div>
+
                     </>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
@@ -203,6 +225,7 @@ const DocumentViewer = ({ user, onClose }) => {
               </div>
             )}
           </div>
+
         </div>
       </div>
     </div>
