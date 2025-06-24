@@ -11,6 +11,7 @@ export const fetchAllStudents = async () => {
         'Content-Type': 'application/json',
       },
     });
+console.log("Fourth student's document type:", response.data[3]?.documents?.[0]?.status);
     return response.data;
   } catch (error) {
     console.error('Error fetching students:', error);
@@ -44,7 +45,6 @@ export const updateStudentStatusById = async ({ id, ...status }) => {
 };
 
 export const getStudentById = async (studentId) => {
-  console.log('Fetching student by ID:', studentId);
   try {
     const response = await apiClient.get(`/students/${studentId}`, {
       headers: {

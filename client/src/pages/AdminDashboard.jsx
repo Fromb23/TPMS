@@ -29,17 +29,45 @@ const AdminDashboard = () => {
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
     });
-    const enhancedStudentData = students?.map(student => ({
-        ...student,
-        documents: {
-            tp: Math.random() > 0.3,
-            timetable: Math.random() > 0.5,
-            assessment: Math.random() > 0.4,
-            records: Math.random() > 0.6
-        },
-        isBlocked: Math.random() > 0.9,
-        lastLogin: ['Today', '2 days ago', '1 week ago'][Math.floor(Math.random() * 3)]
-    })) || [];
+const enhancedStudentData = students?.map(student => {
+  // Map backend documents to { type => { status, type } }
+  const docMap = {};
+  (student.documents || []).forEach(doc => {
+    if (doc?.type) {
+      docMap[doc.type] = {
+        status: doc.status,
+        type: doc.type
+      };
+    }
+  });
+
+  return {
+    ...student,
+    documents: {
+      tp: {
+        submitted: !!docMap['TP_APPLICATION'],
+        ...(docMap['TP_APPLICATION'] || {})
+      },
+      timetable: {
+        submitted: !!docMap['TP_TIMETABLE'],
+        ...(docMap['TP_TIMETABLE'] || {})
+      },
+      assessment: {
+        submitted: !!docMap['TP_ASSESSMENT'],
+        ...(docMap['TP_ASSESSMENT'] || {})
+      },
+      records: {
+        submitted: !!docMap['TP_RECORDS'],
+        ...(docMap['TP_RECORDS'] || {})
+      }
+    },
+    isBlocked: Math.random() > 0.9,
+    lastLogin: ['Today', '2 days ago', '1 week ago'][Math.floor(Math.random() * 3)]
+  };
+}) || [];
+
+    console.log("All students data:", students);
+    
 
     const { data: lecturers, isLoading: lecturersLoading } = useQuery({
         queryKey: ['lecturers'],
@@ -58,16 +86,15 @@ const AdminDashboard = () => {
         : [];
 
     const handleStudentClick = (student) => {
-        console.log("Selected student:", student);
         // setSelectedStudent(student);
         navigate(`/admin-dashboard/${student?.user?.id}`);
     };
     const handleViewDocuments = (student) => {
         navigate(`/admin-dashboard/${student.user.id}/documents`);
     };
-    const closeStudentProfile = () => {
-        setSelectedStudent(null);
-    };
+    // const closeStudentProfile = () => {
+    //     setSelectedStudent(null);
+    // };
     const activeData = activeTab === 'students' ? enhancedStudentData : enhancedLecturerData;
 
     // Stats calculations
@@ -93,6 +120,7 @@ const AdminDashboard = () => {
             accessor: 'student',
             Cell: ({ row }) => {
                 const student = row.original;
+                console.log("student in column", student?.documents)
                 const initials = student?.user?.fullName
                     ?.split(' ')
                     .map(n => n[0])
@@ -116,20 +144,32 @@ const AdminDashboard = () => {
             }
         },
         {
-            Header: 'Documents',
-            accessor: 'documents',
-            Cell: ({ value }) => (
-                <div className="flex space-x-1">
-                    {Object.entries(value).map(([doc, submitted]) => (
-                        <FiFileText
-                            key={doc}
-                            className={submitted ? 'text-green-500' : 'text-gray-300'}
-                            title={`${doc.toUpperCase()}: ${submitted ? 'Submitted' : 'Missing'}`}
-                        />
-                    ))}
-                </div>
-            )
-        },
+  Header: 'Documents',
+  accessor: 'documents',
+  Cell: ({ value }) => (
+    <div className="flex space-x-1">
+      {Object.entries(value).map(([docKey, docData]) => {
+        const submitted = docData?.submitted;
+        const status = docData?.status?.toUpperCase() || 'Missing';
+        const color = submitted
+          ? status === 'APPROVED'
+            ? 'text-green-500'
+            : status === 'REJECTED'
+            ? 'text-red-500'
+            : 'text-yellow-500'
+          : 'text-gray-300';
+
+        return (
+          <FiFileText
+            key={docKey}
+            className={color}
+            title={`${docKey.toUpperCase()}: ${submitted ? status : 'Missing'}`}
+          />
+        );
+      })}
+    </div>
+  )
+},
         {
             Header: 'Status',
             accessor: 'status',
@@ -150,26 +190,34 @@ const AdminDashboard = () => {
                 );
             }
         },
-        {
-            Header: 'TP Verification',
-            accessor: 'tp Verification',
-            Cell: ({ row }) => {
-                const isVerified = row.original?.user?.isVerified;
+{
+  Header: 'TP Application',
+  accessor: 'tpApplication',
+  Cell: ({ row }) => {
+    const tpDoc = row.original?.documents?.tp;
+    const status = tpDoc?.status?.toUpperCase();
+    console.log("TP_APPLICATION Status:", status);
 
-                return (
-                    <div className="flex items-center">
-                        <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${isVerified
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                                }`}
-                        >
-                            {isVerified ? 'Verified' : 'Pending'}
-                        </span>
-                    </div>
-                );
-            }
-        },
+    let badgeText = 'Pending';
+    let badgeClass = 'bg-yellow-100 text-yellow-800';
+
+    if (status === 'APPROVED') {
+      badgeText = 'Approved';
+      badgeClass = 'bg-green-100 text-green-800';
+    } else if (status === 'REJECTED') {
+      badgeText = 'Rejected';
+      badgeClass = 'bg-red-100 text-red-800';
+    }
+
+    return (
+      <div className="flex items-center">
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${badgeClass}`}>
+          {badgeText}
+        </span>
+      </div>
+    );
+  }
+},
         {
             Header: 'Actions',
             accessor: 'id',

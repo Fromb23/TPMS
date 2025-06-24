@@ -52,7 +52,7 @@ function App() {
 
         {/* Student */}
         <Route path="/student-dashboard" element={
-          <PrivateRoute allowedRoles={['STUDENT']}>
+          <PrivateRoute allowedRoles={['STUDENT', 'LECTURER', 'ADMIN']}>
             <StudentDashboard />
           </PrivateRoute>
         } />

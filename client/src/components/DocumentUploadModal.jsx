@@ -53,20 +53,20 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
     setFiles(Array.from(e.target.files));
     setUploadError(null);
   };
+  
 
-  const mutation = useMutation({
-    mutationFn: (recordData) => submitRecordOfWork(recordData),
-    onSuccess: (data) => {
-      setUploadSuccess(true);
-      onUpload(files);
-      setTimeout(handleClose, 5000);
-    },
-    onError: (error) => {
-      console.log("Upload error:", error);
-      setUploadError("Upload failed. Please try again.");
-      setIsUploading(false);
-    },
-  });
+ const mutation = useMutation({
+  mutationFn: (schoolDocumentData) => submitSchoolDocuments(schoolDocumentData),
+  onSuccess: () => {
+    setUploadSuccess(true);
+    onUpload(files);
+    setTimeout(handleClose, 5000);
+  },
+  onError: (error) => {
+    setUploadError("School document submission failed. Please try again.");
+    setIsUploading(false);
+  },
+});
 
   const lessonPlanMutation = useMutation({
   mutationFn: (lessonData) => submitLessonPlan(lessonData),

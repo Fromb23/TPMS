@@ -4,7 +4,7 @@ import {
   FiClock, FiAlertCircle, FiUser, FiMail, FiPhone,
   FiBook
 } from 'react-icons/fi';
-import { StudentProfile } from './StudentProfile';
+
 
 const DocumentViewer = ({ user, onClose }) => {
   const [selectedDoc, setSelectedDoc] = useState(null);

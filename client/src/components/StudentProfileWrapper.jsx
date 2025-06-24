@@ -29,9 +29,7 @@ const StudentProfileWrapper = () => {
           index
           element={
             <StudentProfile
-              student={student}
               onClose={handleClose}
-              onUpdate={() => {}}
             />
           }
         />
