@@ -1,12 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from 'url';
 const prisma = new PrismaClient();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const createDocument = async (req, res) => {
   try {
     const userId = req.user.userId;
-    console.log('User ID from request:', userId);
+    const typeMap = ['TP_APPLICATION', 'TP_TIMETABLE', 'TP_ASSESSMENT', 'TP_RECORDS'];
 
     // Parse schoolData (sent as JSON string via FormData)
     const schoolData = JSON.parse(req.body.schoolData);
@@ -17,15 +21,20 @@ export const createDocument = async (req, res) => {
     }
 
     // Ensure uploads directory exists
-    const uploadDir = path.join('uploads');
+    const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
+
+    // Ensure directory exists
     if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir);
+      fs.mkdirSync(uploadDir, { recursive: true });
+      console.log("Created uploads directory at:", uploadDir);
+    } else {
+      console.log("Uploads directory exists:", uploadDir);
     }
 
     // Save files to disk
     files.forEach((file) => {
       const uploadPath = path.join(uploadDir, file.originalname);
-      fs.writeFileSync(uploadPath, file.buffer); // multer gives you the buffer directly
+      fs.writeFileSync(uploadPath, file.buffer);
     });
 
     // Find the student
@@ -76,8 +85,8 @@ export const createDocument = async (req, res) => {
       await prisma.document.create({
         data: {
           name: file.originalname,
-          type: file.mimetype,
-          url: `/uploads/${file.originalname}`,
+          type: typeMap[file.fieldname] || 'TP_APPLICATION',
+          url: `${file.originalname}`,
           student: {
             connect: { id: student.id },
           },
@@ -87,7 +96,6 @@ export const createDocument = async (req, res) => {
         },
       });
     }
-
 
     return res.status(201).json({ message: 'Documents uploaded successfully' });
 
@@ -125,5 +133,32 @@ export const getDocumentStatusByUserId = async (req, res) => {
   } catch (err) {
     console.error('Error fetching document status:', err);
     res.status(500).json({ error: 'Server error' });
+  }
+};
+
+
+export const updateDocumentStatus = async (req, res) => {
+  try {
+    const {  status } = req.body;
+    const documentId = req.params.documentId;
+    console.log("Updating document status:", { documentId, status });
+
+    if (!documentId || !status) {
+      return res.status(400).json({ error: 'Document ID and status are required.' });
+    }
+
+    if (!['APPROVED', 'REJECTED'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value.' });
+    }
+
+    const updatedDocument = await prisma.document.update({
+      where: { id: documentId },
+      data: { status },
+    });
+
+    return res.status(200).json(updatedDocument);
+  } catch (error) {
+    console.error("Error updating document status:", error);
+    return res.status(500).json({ error: 'Failed to update document status.' });
   }
 };

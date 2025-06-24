@@ -82,7 +82,7 @@ model Document {
   id        String   @id @default(uuid())
   name      String
   url       String
-  type      String
+  type      DocumentType
   status    Status   @default(PENDING)
   studentId String?
   student   Student? @relation(fields: [studentId], references: [id])
@@ -297,4 +297,12 @@ enum AlertType {
   GENERAL
   WARNING
   INFO
+}
+
+enum DocumentType {
+  TP_APPLICATION
+  REPORT
+  LESSON_PLAN
+  SUPERVISION_VISIT
+  FINAL_DOCUMENT
 }

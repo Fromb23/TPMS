@@ -1,4 +1,6 @@
 import express from 'express';
+import path from "path";
+import { fileURLToPath } from 'url';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
@@ -17,6 +19,11 @@ dotenv.config();
 
 app.use(express.json());
 app.use(cors());
+
+//File paths
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentRoutes);

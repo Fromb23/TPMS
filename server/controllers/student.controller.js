@@ -7,6 +7,15 @@ export const fetchStudents = async (req, res) => {
     const students = await prisma.student.findMany({
       include: {
         user: true,
+        documents: {
+          where: {
+            type: 'TP_APPLICATION'
+          },
+          select: {
+            status: true,
+            type: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -25,22 +34,38 @@ export const fetchStudents = async (req, res) => {
 }
 
 export const updateStudentStatusById = async (req, res) => {
-  const { id } = req.params;
+  const { id: studentId } = req.params;
   const { isActive, isBlocked } = req.body;
 
   try {
-    const updatedUser = await prisma.user.update({
-      where: { id },
+
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      include: { user: true },
+    });
+
+    if (!student || !student.user) {
+      return res.status(404).json({ message: "Student or linked user not found" });
+    }
+
+    // Step 2: Update user status
+    await prisma.user.update({
+      where: { id: student.user.id },
       data: {
         ...(isActive !== undefined && { isActive }),
         ...(isBlocked !== undefined && { isBlocked }),
       },
     });
 
-    res.status(200).json(updatedUser);
+    const updatedStudent = await prisma.student.findUnique({
+      where: { id: studentId },
+      include: { user: true },
+    });
+
+    return res.status(200).json(updatedStudent);
   } catch (error) {
     console.error("Error updating user status:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -54,7 +79,10 @@ export const fetchStudentById = async (req, res) => {
   try {
     const student = await prisma.student.findFirst({
       where: { userId: studentId },
-      include: { user: true },
+      include: {
+        user: true,
+        documents: true,
+      },
     });
 
     if (!student) {
