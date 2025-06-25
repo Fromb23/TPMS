@@ -7,6 +7,7 @@ export const fetchStudents = async (req, res) => {
     const students = await prisma.student.findMany({
       include: {
         user: true,
+        school: true, // full school model
         documents: {
           where: {
             type: 'TP_APPLICATION'
@@ -31,7 +32,7 @@ export const fetchStudents = async (req, res) => {
     console.error("Error fetching students:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const updateStudentStatusById = async (req, res) => {
   const { id: studentId } = req.params;

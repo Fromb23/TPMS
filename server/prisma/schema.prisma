@@ -36,6 +36,7 @@ model Student {
   user               User               @relation(fields: [userId], references: [id])
   documents          Document[]
   lessonPlan         LessonPlan[]
+  supervisionSchedule SupervisionSchedule[]
   supervisionVisit   SupervisionVisit[]
   report             Report[]
   finalDocument      FinalDocument[]
@@ -156,7 +157,7 @@ model RecordOfWork {
   learningArea String
   subject      String
   teacher      String
-  records      Json // Store an array or structured entries
+  records      Json
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -187,15 +188,32 @@ model LecturerZoneRequest {
 }
 
 model SupervisionSchedule {
-  id         String   @id @default(uuid())
-  lecturerId String
-  lecturer   Lecturer @relation(fields: [lecturerId], references: [id])
-  startDate  DateTime
-  endDate    DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String               @id @default(uuid())
+  lecturerId  String
+  studentId   String
+  notes       String?
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  lecturer    Lecturer             @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+  student     Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjects    SupervisionSubject[] @relation("ScheduleSubjects")
 
   @@map("supervision_schedules")
+}
+
+model SupervisionSubject {
+  id            String              @id @default(uuid())
+  supervisionId String
+  name          String
+  startTime     DateTime?
+  endTime       DateTime?
+
+  supervision   SupervisionSchedule @relation(name: "ScheduleSubjects", fields: [supervisionId], references: [id], onDelete: Cascade)
+
+  @@map("supervision_subjects")
 }
 
 model LessonPlan {
