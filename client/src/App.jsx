@@ -44,11 +44,10 @@ function App() {
         </Route>
 
         {/* Lecturer */}
-        <Route path="/lecturer-dashboard" element={
-          <PrivateRoute allowedRoles={['LECTURER']}>
-            <LecturerDashboard />
-          </PrivateRoute>
-        } />
+        <Route path="/lecturer-dashboard" element={<PrivateRoute allowedRoles={['LECTURER']} />} >
+          <Route index element={<LecturerDashboard />} />
+          <Route path=":studentId/*" element={<StudentProfileWrapper />} />
+        </Route>
 
         {/* Student */}
         <Route path="/student-dashboard" element={

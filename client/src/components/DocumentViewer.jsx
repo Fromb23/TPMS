@@ -9,8 +9,7 @@ import { updateDocumentStatus } from '../services/documentServices';
 
 
 
-const DocumentViewer = ({ user, onClose }) => {
-  console.log("user passed as a prop to viewer: ", user)
+const DocumentViewer = ({ student, onClose, userRole }) => {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [approvalStatus, setApprovalStatus] = useState({});
 
@@ -22,7 +21,7 @@ const DocumentViewer = ({ user, onClose }) => {
     TP_RECORDS: 'Records of Work'
   };
 
-  const documents = (user.documents || []).map(doc => ({
+  const documents = (student.documents || []).map(doc => ({
     id: doc.id,
     title: documentMap[doc.type] || doc.type,
     submitted: true,
@@ -32,10 +31,16 @@ const DocumentViewer = ({ user, onClose }) => {
     type: doc.type
   }));
 
+  const filteredDocuments = documents.filter(doc => {
+    if (userRole === 'ADMIN') return true;
+    if (userRole === 'LECTURER') return doc.type !== 'TP_APPLICATION';
+    return false;
+  });
+
   const { mutate: updateDocStatus, isLoading } = useMutation({
     mutationFn: updateDocumentStatus,
     onSuccess: (data) => {
-      alert(`Document status updated for ${user?.fullName}`);
+      alert(`Document status updated for ${student?.user?.fullName}`);
       window.location.reload();
     },
     onError: (error) => {
@@ -73,7 +78,7 @@ const DocumentViewer = ({ user, onClose }) => {
         <div className="flex justify-between items-center border-b p-4">
           <h2 className="text-xl font-bold flex items-center">
             <FiUser className="mr-2 text-blue-500" />
-            {user?.user?.fullName}'s Documents
+            {student?.user?.fullName}'s Documents
           </h2>
           <button
             onClick={onClose}
@@ -88,15 +93,15 @@ const DocumentViewer = ({ user, onClose }) => {
           {/* <StudentProfile student={user} /> */}
           <div className="flex items-center">
             <FiMail className="mr-2 text-gray-500" />
-            <span>{user?.user?.email || 'No email provided'}</span>
+            <span>{student?.user?.email || 'No email provided'}</span>
           </div>
           <div className="flex items-center">
             <FiPhone className="mr-2 text-gray-500" />
-            <span>{user.phone || 'No phone provided'}</span>
+            <span>{student.phone || 'No phone provided'}</span>
           </div>
           <div className="flex items-center">
             <FiBook className="mr-2 text-gray-500" />
-            <span>{user.school || 'No school assigned'}</span>
+            <span>{student.school || 'No school assigned'}</span>
           </div>
         </div>
 
@@ -107,7 +112,7 @@ const DocumentViewer = ({ user, onClose }) => {
             <div className="p-4">
               <h3 className="font-medium text-gray-700 mb-3">Submitted Documents</h3>
               <div className="space-y-2">
-                {documents.map(doc => (
+                {filteredDocuments.map(doc => (
                   <div
                     key={doc.id}
                     onClick={() => setSelectedDoc(doc)}

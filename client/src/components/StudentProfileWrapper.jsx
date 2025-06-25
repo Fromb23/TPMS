@@ -14,10 +14,14 @@ const StudentProfileWrapper = () => {
     queryKey: ['student', studentId],
     queryFn: () => getStudentById(studentId),
   });
+  const user = JSON.parse(localStorage.getItem('user'));
+  const userRole = user?.role
 
   const handleClose = () => {
-    navigate('/admin-dashboard');
+    const dashboardBase = user?.role === 'LECTURER' ? 'lecturer-dashboard' : 'admin-dashboard';
+    navigate(`/${dashboardBase}`);
   };
+
 
   if (isLoading) return <div className="p-4">Loading student...</div>;
   if (error || !student) return <div className="p-4">Student not found</div>;
@@ -37,7 +41,8 @@ const StudentProfileWrapper = () => {
           path="documents"
           element={
             <DocumentViewer
-              user={student}
+              userRole={userRole}
+              student={student}
               onClose={handleClose}
             />
           }

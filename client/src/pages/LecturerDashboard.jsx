@@ -1,64 +1,123 @@
 import { useState } from 'react';
 import { Layout } from '../components/Layout';
 import { Table } from '../components/Table';
+import { StudentSupervisionSchedule } from '../components/StudentSupervisionSchedule';
 import { StudentProfile } from '../components/StudentProfile';
-import { dummyStudentData } from '../components/DummyData';
 import {
   FiHome, FiUser, FiBook, FiCalendar, FiFileText, FiEye,
   FiFilter, FiSearch, FiDownload, FiPlus, FiAlertTriangle,
   FiClock, FiCheck, FiMessageSquare
 } from 'react-icons/fi';
+import { fetchAllStudents } from '../services/studentServices';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const LecturerDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const navigate = useNavigate();
 
   // Enhanced dummy data with attention-needed flags
-  const enhancedStudentData = dummyStudentData.map(student => ({
-    ...student,
-    needsAttention: student.status === 'Pending' || Math.random() > 0.7,
-    lastContact: ['Today', '2 days ago', '1 week ago'][Math.floor(Math.random() * 3)],
-    pendingActions: Math.random() > 0.5 ? ['Lesson Plan Review', 'Supervision', 'Incoming supervision'][Math.floor(Math.random() * 2)] : null,
-    alertLevel: ['high', 'medium', 'low'][Math.floor(Math.random() * 3)]
-  }));
+  const { data: allStudents = [], error, isLoading } = useQuery({
+    queryKey: ['students'],
+    queryFn: fetchAllStudents,
+    refetchOnWindowFocus: false,
+  });
+
+  const enhancedStudentData = useMemo(() => {
+    return allStudents.map(student => {
+      const status = student?.user?.isVerified ? 'Active' : 'Pending';
+
+      return {
+        ...student,
+        needsAttention: status === 'Pending',
+        status,
+        lastContact: ['Today', '2 days ago', '1 week ago'][Math.floor(Math.random() * 3)],
+        pendingActions: Math.random() > 0.5
+          ? ['Lesson Plan Review', 'Supervision', 'Incoming supervision'][Math.floor(Math.random() * 3)]
+          : null,
+        alertLevel: ['high', 'medium', 'low'][Math.floor(Math.random() * 3)],
+      };
+    });
+  }, [allStudents]);
 
   const studentsNeedingAttention = enhancedStudentData.filter(
     student => student.needsAttention
   );
+  const getInitials = (fullName) => {
+  return fullName
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase();
+};
 
   const columns = [
-    {
-      Header: 'Student',
-      accessor: 'name',
-      Cell: ({ row }) => (
-        <div className="flex items-center">
-          <FiUser className={`mr-2 ${row.original.needsAttention ? 'text-red-500' : 'text-blue-600'} md:hidden`} />
-          <div>
-            <p className="font-medium">{row.original.name}</p>
-            <p className="text-xs text-gray-500">{row.original.regNo}</p>
-          </div>
-          {row.original.needsAttention && (
-            <FiAlertTriangle className="ml-2 text-yellow-500" />
-          )}
+{
+  Header: 'Student',
+  accessor: 'name',
+  Cell: ({ row }) => {
+    const initials = getInitials(row.original?.user.fullName);
+    const handleProfileClick = () => {
+      // Trigger showing the schedule component
+      // You might set state or navigate depending on your setup
+      console.log("Open supervision for:", row.original);
+      setSelectedStudent(row.original); 
+      setShowSchedule(true);
+    };
+
+    return (
+      <div className="flex items-center space-x-3">
+        {/* Profile Circle */}
+        <div
+          onClick={handleProfileClick}
+          className={`w-10 h-10 flex items-center justify-center rounded-full cursor-pointer text-white font-bold
+            ${row.original.needsAttention ? 'bg-red-500' : 'bg-blue-600'}
+          `}
+          title="View Supervision Schedule"
+        >
+          {initials}
         </div>
-      )
-    },
+
+        <div>
+          <p className="font-medium">{row.original?.user.fullName}</p>
+          <p className="text-xs text-gray-500">{row.original.regNo}</p>
+        </div>
+
+        {row.original.needsAttention && (
+          <FiAlertTriangle className="text-yellow-500" />
+        )}
+      </div>
+    );
+  }
+},
     {
       Header: 'School',
       accessor: 'school',
-      Cell: ({ value, row }) => (
-        <div className="flex items-center">
-          <FiBook className="mr-2 text-green-600 md:hidden" />
-          <span>{value}</span>
-          {row.original.pendingActions && (
-            <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-              {row.original.pendingActions}
+      Cell: ({ value, row }) => {
+        const isUnassigned = !value?.name;
+
+        return (
+          <div className="flex items-center">
+            <FiBook className="mr-2 text-green-600 md:hidden" />
+            <span
+              className={isUnassigned
+                ? "italic text-gray-400 font-light"
+                : "text-gray-800 font-medium"}
+            >
+              {isUnassigned ? 'No School Assigned yet' : value.name}
             </span>
-          )}
-        </div>
-      )
+            {row.original.pendingActions && (
+              <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                {row.original.pendingActions}
+              </span>
+            )}
+          </div>
+        );
+      }
     },
     {
       Header: 'Last Contact',
@@ -136,6 +195,11 @@ const LecturerDashboard = () => {
     const student = enhancedStudentData.find(s => s.id === studentId);
     if (student) {
       setSelectedStudent(student);
+      const user = JSON.parse(localStorage.getItem('user'));
+      const dashboardBase = user?.role === 'LECTURER' ? 'lecturer-dashboard' : 'admin-dashboard';
+      navigate(`/${dashboardBase}/${student.user.id}/documents`);
+    } else {
+      console.error("Student not found for ID:", studentId);
     }
   };
 
@@ -157,10 +221,13 @@ const LecturerDashboard = () => {
       title="Lecturer Dashboard"
       role="lecturer"
       breadcrumbs={[
-        { label: 'Home', href: '/', icon: <FiHome /> },
-        { label: 'Dashboard', href: '/dashboard' }
+        { label: 'Home', href: '/lecturer-dashboard', icon: <FiHome /> },
+        { label: 'Dashboard', href: '/lecturer-dashboard' }
       ]}
     >
+      {selectedStudent && (
+  <StudentSupervisionSchedule student={selectedStudent} onClose={() => setSelectedStudent(null)} />
+)}
       {/* Mobile Menu Toggle */}
       <button
         className="md:hidden fixed bottom-20 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg z-20"
@@ -184,8 +251,8 @@ const LecturerDashboard = () => {
                 <div className="flex justify-between">
                   <h4 className="font-medium">{student.name}</h4>
                   <span className={`text-xs px-2 py-1 rounded-full ${student.alertLevel === 'high' ? 'bg-red-100 text-red-800' :
-                      student.alertLevel === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-blue-100 text-blue-800'
+                    student.alertLevel === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-blue-100 text-blue-800'
                     }`}>
                     {student.alertLevel} priority
                   </span>
