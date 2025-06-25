@@ -18,6 +18,7 @@ const LecturerDashboard = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(false);
   const navigate = useNavigate();
 
   // Enhanced dummy data with attention-needed flags
@@ -48,52 +49,52 @@ const LecturerDashboard = () => {
     student => student.needsAttention
   );
   const getInitials = (fullName) => {
-  return fullName
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase();
-};
+    return fullName
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
+  };
 
   const columns = [
-{
-  Header: 'Student',
-  accessor: 'name',
-  Cell: ({ row }) => {
-    const initials = getInitials(row.original?.user.fullName);
-    const handleProfileClick = () => {
-      // Trigger showing the schedule component
-      // You might set state or navigate depending on your setup
-      console.log("Open supervision for:", row.original);
-      setSelectedStudent(row.original); 
-      setShowSchedule(true);
-    };
+    {
+      Header: 'Student',
+      accessor: 'name',
+      Cell: ({ row }) => {
+        const initials = getInitials(row.original?.user.fullName);
+        const handleProfileClick = () => {
+          // Trigger showing the schedule component
+          // You might set state or navigate depending on your setup
+          console.log("Open supervision for:", row.original);
+          setSelectedStudent(row.original);
+          setShowSchedule(true);
+        };
 
-    return (
-      <div className="flex items-center space-x-3">
-        {/* Profile Circle */}
-        <div
-          onClick={handleProfileClick}
-          className={`w-10 h-10 flex items-center justify-center rounded-full cursor-pointer text-white font-bold
+        return (
+          <div className="flex items-center space-x-3">
+            {/* Profile Circle */}
+            <div
+              onClick={handleProfileClick}
+              className={`w-10 h-10 flex items-center justify-center rounded-full cursor-pointer text-white font-bold
             ${row.original.needsAttention ? 'bg-red-500' : 'bg-blue-600'}
           `}
-          title="View Supervision Schedule"
-        >
-          {initials}
-        </div>
+              title="View Supervision Schedule"
+            >
+              {initials}
+            </div>
 
-        <div>
-          <p className="font-medium">{row.original?.user.fullName}</p>
-          <p className="text-xs text-gray-500">{row.original.regNo}</p>
-        </div>
+            <div>
+              <p className="font-medium">{row.original?.user.fullName}</p>
+              <p className="text-xs text-gray-500">{row.original.regNo}</p>
+            </div>
 
-        {row.original.needsAttention && (
-          <FiAlertTriangle className="text-yellow-500" />
-        )}
-      </div>
-    );
-  }
-},
+            {row.original.needsAttention && (
+              <FiAlertTriangle className="text-yellow-500" />
+            )}
+          </div>
+        );
+      }
+    },
     {
       Header: 'School',
       accessor: 'school',
@@ -226,8 +227,8 @@ const LecturerDashboard = () => {
       ]}
     >
       {selectedStudent && (
-  <StudentSupervisionSchedule student={selectedStudent} onClose={() => setSelectedStudent(null)} />
-)}
+        <StudentSupervisionSchedule student={selectedStudent} onClose={() => setSelectedStudent(null)} />
+      )}
       {/* Mobile Menu Toggle */}
       <button
         className="md:hidden fixed bottom-20 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg z-20"
