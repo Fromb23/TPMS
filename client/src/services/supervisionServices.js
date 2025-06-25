@@ -32,6 +32,7 @@ export const deleteSupervisionSchedule = async (supervisionId) => {
 }
 
 export const fetchSupervisionSchedule = async (studentId) => {
+    console.log("Fetching supervision schedule for student:", studentId);
   try {
     const response = await apiClient.get(`/supervision/${studentId}`, {
       headers: {

@@ -19,14 +19,12 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
     ? student.subjectCombination.split(' ') 
     : [];
 
-  const {
-    data: supervision,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ['supervision', studentId],
-    queryFn: fetchSupervisionSchedule,
-  });
+const { data: supervision, isLoading, isError, } = useQuery({
+  queryKey: ['supervision', studentId],
+  queryFn: () => fetchSupervisionSchedule(studentId),
+  enabled: !!studentId,
+});
+console.log('Supervision data:', supervision);
 
   const createSupervision = useMutation({
     mutationFn: createSupervisionSchedule,
@@ -111,85 +109,122 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
     return <p className="text-red-500">You must be logged in to manage supervisions.</p>;
   }
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg space-y-4">
-        <div className="flex justify-between">
-          <h2 className="text-xl font-semibold">Supervision Schedule</h2>
-          <button onClick={onClose} className="text-red-500 text-2xl font-bold">&times;</button>
-        </div>
+return (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg space-y-4">
+      <div className="flex justify-between">
+        <h2 className="text-xl font-semibold">Supervision Schedule</h2>
+        <button onClick={onClose} className="text-red-500 text-2xl font-bold">&times;</button>
+      </div>
 
-        {isLoading ? (
-          <p className="text-center text-gray-500">Loading...</p>
-        ) : supervision ? (
-          <div className="space-y-2 text-sm">
-            <p><b>Subjects:</b> {supervision.subject}</p>
-            <p><b>Date:</b> {new Date(supervision.date).toLocaleString()}</p>
-            <p><b>Notes:</b> {supervision.notes}</p>
-            <button onClick={handleCancel} className="w-full py-2 bg-red-600 text-white rounded hover:bg-red-700">
-              Cancel Supervision
-            </button>
+      {isLoading ? (
+        <p className="text-center text-gray-500">Loading...</p>
+      ) : Array.isArray(supervision) && supervision.length > 0 ? (
+        supervision.map((entry) => (
+          <div key={entry.id} className="border p-4 rounded shadow space-y-2 text-sm">
+            <p><b>Student:</b> {student?.user?.fullName || 'Unknown Student'}</p>
+            <p><b>Date:</b> {new Date(entry.startDate).toLocaleDateString()}</p>
+            <p><b>Time:</b> {`${new Date(entry.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${new Date(entry.endDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}</p>
+            <p><b>Subjects:</b></p>
+            <ul className="pl-4 list-disc">
+              {entry.subjects.map((subj) => (
+                <li key={subj.id}>
+                  {subj.name} ({new Date(subj.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(subj.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
+                </li>
+              ))}
+            </ul>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleCancel(entry.id)}
+                className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleEdit(entry)}
+                className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+              >
+                Edit
+              </button>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            {success && <p className="text-green-600 text-sm">Supervision booked successfully!</p>}
+        ))
+      ) : (
+        <div className="space-y-3">
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {success && <p className="text-green-600 text-sm">Supervision booked successfully!</p>}
 
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full border p-2 rounded" />
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full border p-2 rounded"
+          />
 
-            {subjects.length === 0 ? (
-              <p className="text-sm text-gray-600 italic">This student has no subject combination.</p>
-            ) : (
-              <>
-                <div>
-                  <p className="text-sm font-medium mb-1">Select up to 2 subjects</p>
-                  <div className="flex flex-wrap gap-2">
-                    {subjects.map((s, i) => (
-                      <button
-                        key={i}
-                        onClick={() => toggleSubject(s)}
-                        className={`px-3 py-1 rounded-full border transition text-sm ${
-                          selectedSubjects.includes(s)
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
+          {subjects.length === 0 ? (
+            <p className="text-sm text-gray-600 italic">This student has no subject combination.</p>
+          ) : (
+            <>
+              <div>
+                <p className="text-sm font-medium mb-1">Select up to 2 subjects</p>
+                <div className="flex flex-wrap gap-2">
+                  {subjects.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => toggleSubject(s)}
+                      className={`px-3 py-1 rounded-full border transition text-sm ${
+                        selectedSubjects.includes(s)
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {selectedSubjects.map((s, i) => (
+                <div key={i} className="border p-3 rounded space-y-2">
+                  <p className="text-sm font-semibold">{s} Timing</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="time"
+                      value={subjectTimes[s]?.start || ''}
+                      onChange={(e) => handleTimeChange(s, 'start', e.target.value)}
+                      className="border p-2 rounded"
+                    />
+                    <input
+                      type="time"
+                      value={subjectTimes[s]?.end || ''}
+                      onChange={(e) => handleTimeChange(s, 'end', e.target.value)}
+                      className="border p-2 rounded"
+                    />
                   </div>
                 </div>
+              ))}
+            </>
+          )}
 
-                {selectedSubjects.map((s, i) => (
-                  <div key={i} className="border p-3 rounded space-y-2">
-                    <p className="text-sm font-semibold">{s} Timing</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input type="time" value={subjectTimes[s]?.start || ''} onChange={(e) => handleTimeChange(s, 'start', e.target.value)} className="border p-2 rounded" />
-                      <input type="time" value={subjectTimes[s]?.end || ''} onChange={(e) => handleTimeChange(s, 'end', e.target.value)} className="border p-2 rounded" />
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
+          <textarea
+            placeholder="Notes (optional)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="w-full border p-2 rounded"
+            rows={3}
+          />
 
-            <textarea
-              placeholder="Notes (optional)"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full border p-2 rounded"
-              rows={3}
-            />
-
-            <button
-              onClick={handleCreate}
-              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
-              disabled={subjects.length === 0}
-            >
-              Create Supervision
-            </button>
-          </div>
-        )}
-      </div>
+          <button
+            onClick={handleCreate}
+            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+            disabled={subjects.length === 0}
+          >
+            Create Supervision
+          </button>
+        </div>
+      )}
     </div>
-  );
+  </div>
+);
 };
