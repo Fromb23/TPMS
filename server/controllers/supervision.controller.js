@@ -102,3 +102,39 @@ export const getSupervisionScheduleByStudent = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const confirmStudentSupervision = async (req, res) => {
+  const { supervisionId } = req.params;
+
+  try {
+    // Fetch current schedule
+    const existing = await prisma.supervisionSchedule.findUnique({
+      where: { id: supervisionId },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ message: "Supervision schedule not found" });
+    }
+
+    if (existing.isSupervised) {
+      return res.status(400).json({ message: "Supervision already confirmed" });
+    }
+
+    if (existing.supervisionCount >= 3) {
+      return res.status(400).json({ message: "Maximum number of supervisions reached" });
+    }
+
+    const updatedSupervision = await prisma.supervisionSchedule.update({
+      where: { id: supervisionId },
+      data: {
+        isSupervised: true,
+        supervisionCount: { increment: 1 },
+      },
+    });
+
+    res.status(200).json(updatedSupervision);
+  } catch (error) {
+    console.error("Error confirming supervision:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
