@@ -5,8 +5,10 @@ import { StatusCard, QuickAction } from '../components/UI';
 import { DocumentSubmissionPhase } from '../components/DocumentSubmissionPhase';
 import DocumentUploadModal from '../components/DocumentUploadModal';
 import TpTimeline from '../components/TpTimeline';
+import StudentSupervisionCard from '../components/StudentSupervisionCard';
 import ActiveTPTasks from '../components/ActiveTPTasks';
 import { fetchSchoolDataByStudentId, getDocumentStatusByUserId } from '../services/schoolServices';
+import { fetchSupervisionSchedule } from '../services/supervisionServices';
 import { fetchLessonPlanStatusToday } from '../services/lessonPlanServices';
 import {
   FiCalendar, FiBook, FiUpload, FiMessageSquare,
@@ -16,21 +18,20 @@ import {
 import { fetchRecordOfWorkStatusToday } from '../services/recordOfWorkServices';
 
 const StudentDashboard = () => {
-  // State for different TP phases
   const [currentPhase, setCurrentPhase] = useState(); // 'document-submission', 'pre-tp', 'active-tp', 'assessment', 'post-tp', 'completed'
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [supervisorInfo, setSupervisorInfo] = useState(null);
+  const [rejectSessionId, setRejectSessionId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
   const [uploadType, setUploadType] = useState('');
+  const [showSupervisionCard, setShowSupervisionCard] = useState(false);
+
 
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?.id;
 
   const { data: documentStatus, isLoading: isStatusLoading, isError: isStatusError, error: statusError } = useQuery({
     queryKey: ['student-document-status', userId],
-    queryFn: async () => {
-      if (!userId) throw new Error("User not authenticated");
-      return await getDocumentStatusByUserId(userId);
-    },
+    queryFn: () => getDocumentStatusByUserId(userId),
     enabled: !!userId,
     refetchOnWindowFocus: false,
     retry: false,
@@ -47,11 +48,7 @@ const StudentDashboard = () => {
     retry: false,
   });
 
-  const {
-    data: submissionStatus,
-    isLoading: isLessonStatusLoading,
-    isError: isLessonStatusError,
-    error: lessonStatusError
+  const { data: submissionStatus, isLoading: isLessonStatusLoading, isError: isLessonStatusError, error: lessonStatusError
   } = useQuery({
     queryKey: ['lesson-plan-status', userId],
     queryFn: async () => {
@@ -62,6 +59,35 @@ const StudentDashboard = () => {
     refetchOnWindowFocus: false,
     retry: false,
   });
+
+  // Fetch supervisor information
+  const { data: supervisorInfo, isLoading: isSupervisorLoading, isError: isSupervisorError, error: supervisorError } = useQuery({
+    queryKey: ['supervisor-info', userId],
+    queryFn: () => fetchSupervisionSchedule(userId),
+    enabled: !!userId,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+  console.log("Supervisor Info:", supervisorInfo);
+  const handleAcceptSupervision = async (supervisionId) => {
+    // You can POST to /api/supervision/accept
+    console.log(`Accepted supervision ID: ${supervisionId}`);
+  };
+
+  const handleRejectSupervision = async (supervisionId) => {
+    console.log(`Rejected supervision ID: ${supervisionId} with reason: ${rejectionReason}`);
+    setRejectSessionId(null);
+    setRejectionReason('');
+  };
+
+  // useEffect(() => {
+  //   if (supervisorInfo && supervisorInfo.length > 0 && currentPhase === 'active-tp') {
+  //     setCurrentPhase('assessment');
+  //   }
+  // }, [supervisorInfo, currentPhase]);
+
+  // console.log("currentPhase:", currentPhase);
+
 
   // Fetch record of work status
   const { data: recordOfWorkStatus, isLoading: isRecordOfWorkLoading, isError: isRecordOfWorkError, error: recordOfWorkError } = useQuery({
@@ -80,15 +106,20 @@ const StudentDashboard = () => {
     const determinePhase = () => {
       if (!documentStatus) return 'document-submission';
 
-      if (documentStatus.status === 'PENDING') return 'pre-tp';
-      if (documentStatus.status === 'APPROVED') return 'active-tp';
       if (documentStatus.status === 'REJECTED') return 'document-submission';
+      if (documentStatus.status === 'PENDING') return 'pre-tp';
+
+      if (documentStatus.status === 'APPROVED' && supervisorInfo?.length > 0) {
+        return 'assessment';
+      }
+
+      if (documentStatus.status === 'APPROVED') return 'active-tp';
 
       return 'document-submission';
     };
 
     setCurrentPhase(determinePhase());
-  }, [documentStatus]);
+  }, [documentStatus, supervisorInfo?.length]);
 
   // Handle document upload
   const handleUpload = (type) => {
@@ -120,8 +151,8 @@ const StudentDashboard = () => {
         );
 
       case 'active-tp':
-        return <ActiveTPTasks handleUpload={handleUpload} disabled={submissionStatus?.hasSubmitted || isLessonStatusLoading} 
-        recordOfWorkDisabled={recordOfWorkStatus?.hasSubmitted || isRecordOfWorkLoading}/>;
+        return <ActiveTPTasks handleUpload={handleUpload} disabled={submissionStatus?.hasSubmitted || isLessonStatusLoading}
+          recordOfWorkDisabled={recordOfWorkStatus?.hasSubmitted || isRecordOfWorkLoading} />;
 
       case 'assessment':
         return (
@@ -130,11 +161,14 @@ const StudentDashboard = () => {
               <FiAlertCircle className="mr-2 text-purple-600" />
               Upcoming Assessment
             </h3>
-            <p className="mb-2">You have an assessment scheduled for {tpData.upcomingAssessment.date}.</p>
-            <p className="mb-3">Assessor: {tpData.upcomingAssessment.assessorName}</p>
-            <button className="bg-purple-600 text-white px-4 py-2 rounded-md">
+            <button onClick={() => setShowSupervisionCard(true)}
+              className="bg-purple-600 text-white px-4 py-2 rounded-md"
+            >
               View Assessment Details
             </button>
+            {showSupervisionCard && supervisorInfo.map((session, index) => (
+              <StudentSupervisionCard key={index} schedule={session} />
+            ))}
           </div>
         );
 
@@ -215,15 +249,64 @@ const StudentDashboard = () => {
               <FiMapPin className="mr-2 text-blue-500" />
               Supervisor Information
             </h2>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              {supervisorInfo ? (
-                <>
-                  <h3 className="font-medium mb-1">{supervisorInfo.name}</h3>
-                  <p>{supervisorInfo.email}</p>
-                  <p className="text-sm text-gray-600 mt-1">{supervisorInfo.phone}</p>
-                </>
+            <div className="space-y-4">
+              {supervisorInfo && supervisorInfo.length > 0 ? (
+                supervisorInfo.map((session, index) => (
+                  <div key={index} className="p-4 bg-gray-50 rounded-lg border shadow">
+                    <h3 className="text-lg font-semibold text-blue-800">
+                      <span>Dr. </span>{session.lecturer?.user?.fullName || 'Lecturer Name Not Available'}
+                    </h3>
+                    <p className="text-sm text-gray-700">Email: {session.lecturer?.user?.email || 'N/A'}</p>
+                    <p className="text-sm text-gray-700 mb-2">Phone: {session.lecturer?.user?.phone || 'Not Provided'}</p>
+
+                    <div className="mt-2 space-y-1 text-sm">
+                      <p><b>Supervision Date:</b> {new Date(session.startDate).toLocaleDateString()}</p>
+                      {session.subjects?.map((subj, i) => (
+                        <p key={i}>
+                          <b>{subj.name}</b>: {new Date(subj.startTime).toLocaleTimeString()} - {new Date(subj.endTime).toLocaleTimeString()}
+                        </p>
+                      ))}
+                      <p><b>Lecturer Notes:</b> {session.notes || <i>No notes provided.</i>}</p>
+                    </div>
+
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                        onClick={() => handleAcceptSupervision(session.id)}
+                      >
+                        Accept
+                      </button>
+                      <button
+                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                        onClick={() => setRejectSessionId(session.id)}
+                      >
+                        Reject
+                      </button>
+                    </div>
+
+                    {/* Show reason input if rejection is triggered */}
+                    {rejectSessionId === session.id && (
+                      <div className="mt-2">
+                        <textarea
+                          rows={2}
+                          className="w-full border p-2 rounded"
+                          placeholder="Reason for rejection"
+                          value={rejectionReason}
+                          onChange={(e) => setRejectionReason(e.target.value)}
+                        />
+                        <button
+                          className="mt-1 bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-800"
+                          onClick={() => handleRejectSupervision(session.id)}
+                          disabled={!rejectionReason.trim()}
+                        >
+                          Submit Rejection
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))
               ) : (
-                <p className="text-gray-500">No supervisor assigned</p>
+                <p className="text-gray-500 text-sm italic">No supervisor assigned yet.</p>
               )}
             </div>
           </section>

@@ -3,18 +3,18 @@ import apiClient from "../api/api";
 const token = localStorage.getItem("token");
 
 export const createSupervisionSchedule = async (payload) => {
-   try {
-     const response = await apiClient.post("/supervision", payload, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-        },
+  try {
+    const response = await apiClient.post("/supervision", payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     });
     return response.data;
-   } catch (error) {
-     console.error("Error creating supervision:", error);
-     throw error;
-   }
+  } catch (error) {
+    console.error("Error creating supervision:", error);
+    throw error;
+  }
 }
 
 export const deleteSupervisionSchedule = async (supervisionId) => {
@@ -32,7 +32,7 @@ export const deleteSupervisionSchedule = async (supervisionId) => {
 }
 
 export const fetchSupervisionSchedule = async (studentId) => {
-    console.log("Fetching supervision schedule for student:", studentId);
+  console.log("Fetching supervision schedule for student:", studentId);
   try {
     const response = await apiClient.get(`/supervision/${studentId}`, {
       headers: {
@@ -42,6 +42,24 @@ export const fetchSupervisionSchedule = async (studentId) => {
     return response.data;
   } catch (error) {
     console.error("Error fetching supervision schedule:", error);
+    throw error;
+  }
+}
+
+export const confirmStudentSupervision = async ({ supervisionId, isSupervised, supervisionCount }) => {
+  try {
+    const response = await apiClient.patch(`/supervision/${supervisionId}/confirm`, {
+      isSupervised,
+      supervisionCount
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error confirming supervision:", error);
     throw error;
   }
 }
