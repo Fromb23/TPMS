@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Layout } from '../components/Layout';
-import { Breadcrumb } from '../components/Breadcrumb';
+import { Breadcrumb } from '../components/BreadCrumb';
 import { FiClock, FiEdit2, FiTrash2, FiCheckCircle } from 'react-icons/fi';
 
 const TpPeriod = () => {

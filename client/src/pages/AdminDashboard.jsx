@@ -201,8 +201,8 @@ const AdminDashboard = () => {
                 const status = tpDoc?.status?.toUpperCase();
                 console.log("TP_APPLICATION Status:", status);
 
-                let badgeText = 'Pending';
-                let badgeClass = 'bg-yellow-100 text-yellow-800';
+                let badgeText = 'Missing';
+                let badgeClass = 'bg-gray-100 text-gray-800';
 
                 if (status === 'APPROVED') {
                     badgeText = 'Approved';
@@ -210,6 +210,10 @@ const AdminDashboard = () => {
                 } else if (status === 'REJECTED') {
                     badgeText = 'Rejected';
                     badgeClass = 'bg-red-100 text-red-800';
+                }
+                else if ( status === 'PENDING' ) {
+                    badgeText = 'Pending';
+                    badgeClass = 'bg-yellow-100 text-yellow-800';
                 }
 
                 return (

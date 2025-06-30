@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { getStudentById } from '../services/studentServices';
 import { StudentProfile } from './StudentProfile';
 import DocumentViewer from './DocumentViewer';
-import { StudentSupervisionSchedule } from './StudentSupervisionSchedule';
 
 const StudentProfileWrapper = () => {
   const { studentId } = useParams();
@@ -49,16 +48,6 @@ const StudentProfileWrapper = () => {
           }
         />
       </Routes>
-      <Route
-        path="supervision-schedule"
-        element={
-          <StudentSupervisionSchedule
-            student={student}
-            onClose={handleClose}
-            userRole={userRole}
-          />
-        }
-      />
     </>
   );
 };

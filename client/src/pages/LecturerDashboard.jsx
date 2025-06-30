@@ -66,8 +66,6 @@ const LecturerDashboard = () => {
           // Trigger showing the schedule component
           // You might set state or navigate depending on your setup
           setSelectedStudent(row.original);
-          navigate(`/lecturer-dashboard/${row.original.id}/supervision-schedule`);
-          setSelectedStudent(row.original);
           setShowSchedule(true);
         };
 
