@@ -3,10 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   createSupervisionSchedule,
   deleteSupervisionSchedule,
+  enableStudentFinalDocumentSubmission,
   fetchSupervisionSchedule,
 } from '../services/supervisionServices';
 
-export const StudentSupervisionSchedule = ({ student, onClose, handleEnableFinalDocs }) => {
+export const StudentSupervisionSchedule = ({ student, onClose }) => {
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState([]);
@@ -30,13 +31,28 @@ export const StudentSupervisionSchedule = ({ student, onClose, handleEnableFinal
     enabled: !!studentId,
   });
 
+  const handleEnableFinalDocs = (studentId) => {
+    enableFinalDocumentSubmission.mutate(studentId);
+  };
+  const enableFinalDocumentSubmission = useMutation({
+    mutationFn: enableStudentFinalDocumentSubmission,
+    onSuccess: () => {
+      alert('Final document submission enabled for this student.');
+      queryClient.invalidateQueries(['student', studentId]);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    },
+    onError: () => setError('Failed to enable final document submission'),
+  });
+  
+
   const createSupervision = useMutation({
     mutationFn: createSupervisionSchedule,
     onSuccess: () => {
       queryClient.invalidateQueries(['supervision', studentId]);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-      setShowForm(false); // collapse form after creation
+      setShowForm(false);
     },
     onError: () => setError('Failed to create supervision'),
   });
@@ -110,7 +126,7 @@ export const StudentSupervisionSchedule = ({ student, onClose, handleEnableFinal
   if (!lecturerId)
     return <p className="text-red-500">You must be logged in to manage supervisions.</p>;
 
-  const supervisionCount = Array.isArray(supervision) ? supervision[0]?.supervisionCount || 0 : 0;
+  const supervisionCount = student?.supervisionCount || 0;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center overflow-y-auto p-4 z-50">
@@ -122,14 +138,19 @@ export const StudentSupervisionSchedule = ({ student, onClose, handleEnableFinal
           </button>
         </div>
 
-        {supervisionCount >= 3 && student?.canSubmitFinalDocs === false && (
-          <button
-            onClick={() => handleEnableFinalDocs(student.id)}
-            className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded mt-2"
-          >
-            Allow Final Document Submission
-          </button>
-        )}
+        {supervisionCount >= 3 && (
+  <button
+    disabled={!student?.canSubmitFinalDocs}
+    className={`w-full py-2 rounded mt-4 ${
+      student?.canSubmitFinalDocs
+        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+        : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+    }`}
+  >
+    Submit Final Documents
+  </button>
+)}
+
 
         {/* Show dropdown to create new supervision */}
         {Array.isArray(supervision) && supervision.length > 0 && (
