@@ -13,7 +13,6 @@ export const createSupervisionSchedule = async (req, res) => {
   }
 
   try {
-    // Find the lecturer using the logged-in user's ID
     const lecturer = await prisma.lecturer.findFirst({
       where: { userId },
     });
@@ -22,10 +21,8 @@ export const createSupervisionSchedule = async (req, res) => {
       return res.status(404).json({ message: 'Lecturer not found' });
     }
 
-    // Extract studentUserId from session (i.e. the frontend is sending student.userId)
     const studentUserId = sessions[0].studentId;
 
-    // Find the student based on userId
     const student = await prisma.student.findFirst({
       where: { userId: studentUserId },
     });
@@ -69,7 +66,6 @@ export const getSupervisionScheduleByStudent = async (req, res) => {
   const { studentUserId } = req.params;
 
   try {
-    // Find student by user ID
     const student = await prisma.student.findFirst({
       where: { userId: studentUserId },
     });
@@ -78,7 +74,6 @@ export const getSupervisionScheduleByStudent = async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    // Fetch all supervision schedules tied to this student
     const schedules = await prisma.supervisionSchedule.findMany({
       where: {
         studentId: student.id,
@@ -87,7 +82,7 @@ export const getSupervisionScheduleByStudent = async (req, res) => {
         subjects: true,
         lecturer: {
           include: {
-            user: true, // assuming Lecturer has relation to User
+            user: true,
           },
         },
       },
@@ -107,9 +102,10 @@ export const confirmStudentSupervision = async (req, res) => {
   const { supervisionId } = req.params;
 
   try {
-    // Fetch current schedule
+    // Fetch the schedule
     const existing = await prisma.supervisionSchedule.findUnique({
       where: { id: supervisionId },
+      include: { student: true },
     });
 
     if (!existing) {
@@ -120,21 +116,61 @@ export const confirmStudentSupervision = async (req, res) => {
       return res.status(400).json({ message: "Supervision already confirmed" });
     }
 
-    if (existing.supervisionCount >= 3) {
+    // Get student's current count
+    const student = await prisma.student.findUnique({
+      where: { id: existing.studentId },
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    if (student.supervisionCount >= 3) {
       return res.status(400).json({ message: "Maximum number of supervisions reached" });
     }
 
-    const updatedSupervision = await prisma.supervisionSchedule.update({
-      where: { id: supervisionId },
-      data: {
-        isSupervised: true,
-        supervisionCount: { increment: 1 },
-      },
-    });
+    // Confirm this supervision + increment student's count
+    const [updatedSupervision, updatedStudent] = await prisma.$transaction([
+      prisma.supervisionSchedule.update({
+        where: { id: supervisionId },
+        data: { isSupervised: true },
+      }),
+      prisma.student.update({
+        where: { id: existing.studentId },
+        data: {
+          supervisionCount: { increment: 1 },
+        },
+      }),
+    ]);
 
-    res.status(200).json(updatedSupervision);
+    res.status(200).json({ updatedSupervision, updatedStudent });
+
   } catch (error) {
     console.error("Error confirming supervision:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const enableStudentSubmitFinalDocument = async (req, res) => {
+  const { studentId } = req.body;
+
+  try {
+    const student = await prisma.student.findFirst({
+      where: { userId: studentId },
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    const updatedStudent = await prisma.student.update({
+      where: { id: student.id },
+      data: { canSubmitFinalDocs: true },
+    });
+
+    res.status(200).json(updatedStudent);
+  } catch (error) {
+    console.error('Error enabling final document submission:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

@@ -28,34 +28,36 @@ model User {
 }
 
 model Student {
-  id                 String             @id @default(uuid())
-  userId             String
-  schoolId           String?
-  subjectCombination String?
-  school             School?            @relation(fields: [schoolId], references: [id])
-  user               User               @relation(fields: [userId], references: [id])
-  documents          Document[]
-  lessonPlan         LessonPlan[]
+  id                  String                @id @default(uuid())
+  userId              String
+  schoolId            String?
+  subjectCombination  String?
+  canSubmitFinalDocs  Boolean               @default(false)
+  supervisionCount    Int                   @default(0)
+  school              School?               @relation(fields: [schoolId], references: [id])
+  user                User                  @relation(fields: [userId], references: [id])
+  documents           Document[]
+  lessonPlan          LessonPlan[]
   supervisionSchedule SupervisionSchedule[]
-  supervisionVisit   SupervisionVisit[]
-  report             Report[]
-  finalDocument      FinalDocument[]
-  grade              Grade[]
-  tpApplication      TpApplication[]
-  recordOfWork       RecordOfWork[]
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  supervisionVisit    SupervisionVisit[]
+  report              Report[]
+  finalDocument       FinalDocument[]
+  grade               Grade[]
+  tpApplication       TpApplication[]
+  recordOfWork        RecordOfWork[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
 
   @@map("students")
 }
 
 model Lecturer {
-  id                   String                 @id @default(uuid())
-  department           String
-  userId               String
-  user                 User                   @relation(fields: [userId], references: [id])
+  id         String @id @default(uuid())
+  department String
+  userId     String
+  user       User   @relation(fields: [userId], references: [id])
 
-  coordinatedZone      Zone?                  @relation("ZoneCoordinator") // one-to-one inverse
+  coordinatedZone Zone? @relation("ZoneCoordinator") // one-to-one inverse
 
   lecturerZoneAssigned LecturerZoneAssigned[]
   lecturerZoneRequest  LecturerZoneRequest[]
@@ -80,28 +82,28 @@ model Admin {
 }
 
 model Document {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   name      String
   url       String
   type      DocumentType
-  status    Status   @default(PENDING)
+  status    Status       @default(PENDING)
   studentId String?
-  student   Student? @relation(fields: [studentId], references: [id])
+  student   Student?     @relation(fields: [studentId], references: [id])
   schoolId  String?
-  school    School?  @relation(fields: [schoolId], references: [id])
-  createdAt DateTime @default(now())
+  school    School?      @relation(fields: [schoolId], references: [id])
+  createdAt DateTime     @default(now())
 
   @@map("documents")
 }
 
 model Zone {
-  id                   String                 @id @default(uuid())
-  name                 String                 @unique
-  county               String?
-  constituencies       Json?
+  id             String  @id @default(uuid())
+  name           String  @unique
+  county         String?
+  constituencies Json?
 
-  coordinatorId        String?                @unique
-  coordinator          Lecturer?              @relation("ZoneCoordinator", fields: [coordinatorId], references: [id])
+  coordinatorId String?   @unique
+  coordinator   Lecturer? @relation("ZoneCoordinator", fields: [coordinatorId], references: [id])
 
   schools              School[]
   lecturerZoneRequest  LecturerZoneRequest[]
@@ -188,32 +190,31 @@ model LecturerZoneRequest {
 }
 
 model SupervisionSchedule {
-  id          String               @id @default(uuid())
-  lecturerId  String
-  studentId   String
-  notes       String?
-  isSupervised Boolean              @default(false)
-  supervisionCount Int                @default(0)
-  startDate   DateTime
-  endDate     DateTime
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
+  id           String   @id @default(uuid())
+  lecturerId   String
+  studentId    String
+  notes        String?
+  isSupervised Boolean  @default(false)
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  lecturer    Lecturer             @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
-  student     Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  subjects    SupervisionSubject[] @relation("ScheduleSubjects")
+  lecturer Lecturer             @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+  student  Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjects SupervisionSubject[] @relation("ScheduleSubjects")
 
   @@map("supervision_schedules")
 }
 
 model SupervisionSubject {
-  id            String              @id @default(uuid())
+  id            String    @id @default(uuid())
   supervisionId String
   name          String
   startTime     DateTime?
   endTime       DateTime?
 
-  supervision   SupervisionSchedule @relation(name: "ScheduleSubjects", fields: [supervisionId], references: [id], onDelete: Cascade)
+  supervision SupervisionSchedule @relation(name: "ScheduleSubjects", fields: [supervisionId], references: [id], onDelete: Cascade)
 
   @@map("supervision_subjects")
 }
