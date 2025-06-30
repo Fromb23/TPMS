@@ -65,7 +65,8 @@ const LecturerDashboard = () => {
         const handleProfileClick = () => {
           // Trigger showing the schedule component
           // You might set state or navigate depending on your setup
-          console.log("Open supervision for:", row.original);
+          setSelectedStudent(row.original);
+          navigate(`/lecturer-dashboard/${row.original.id}/supervision-schedule`);
           setSelectedStudent(row.original);
           setShowSchedule(true);
         };
