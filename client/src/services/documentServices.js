@@ -32,3 +32,26 @@ export const updateDocumentStatus = async ({ documentId, status }) => {
 
   return response.data;
 };
+
+export const submitFinalTPDocument = async ({ userId, title, content, file }) => {
+  try {
+
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("content", content);
+    formData.append("file", file);
+
+    const response = await apiClient.post('/documents/final-tp', formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error submitting final TP document:", error.message || error);
+    throw error;
+  }
+};

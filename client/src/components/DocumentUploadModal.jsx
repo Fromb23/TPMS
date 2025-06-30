@@ -4,11 +4,13 @@ import { FiUpload, FiX, FiFile, FiCheckCircle, FiAlertCircle } from 'react-icons
 import DocumentFileInput from './DocumentFileInput';
 import { submitSchoolDocuments } from '../services/schoolServices';
 import { submitLessonPlan } from '../services/lessonPlanServices';
+import { submitFinalTPDocument } from '../services/documentServices';
 import LessonPlanTemplate from './LessonPlanTemplate';
 import RecordOfWorkTemplate from './RecordOfWorkTemplate';
 import { submitRecordOfWork } from '../services/recordOfWorkServices';
 
 const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }) => {
+  console.log("DocumentUploadModal rendered with type:", type);
   const [files, setFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
@@ -31,11 +33,15 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
 
     // record-of-work
     school: "",
-    subject: "",
     learningArea: "",
     teacher: "",
-      records: [
-    { date: '', week: '', workDone: '', reflection: '', signature: '' }],
+    records: [
+      { date: '', week: '', workDone: '', reflection: '', signature: '' }
+    ],
+
+    // final-tp
+    title: "",         // <-- added
+    content: "",       // <-- added
   });
 
   const user = localStorage.getItem("user");
@@ -53,48 +59,62 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
     setFiles(Array.from(e.target.files));
     setUploadError(null);
   };
-  
 
- const mutation = useMutation({
-  mutationFn: (schoolDocumentData) => submitSchoolDocuments(schoolDocumentData),
-  onSuccess: () => {
-    setUploadSuccess(true);
-    onUpload(files);
-    setTimeout(handleClose, 5000);
-  },
-  onError: (error) => {
-    setUploadError("School document submission failed. Please try again.");
-    setIsUploading(false);
-  },
-});
+
+  const mutation = useMutation({
+    mutationFn: (schoolDocumentData) => submitSchoolDocuments(schoolDocumentData),
+    onSuccess: () => {
+      setUploadSuccess(true);
+      onUpload(files);
+      setTimeout(handleClose, 5000);
+    },
+    onError: (error) => {
+      setUploadError("School document submission failed. Please try again.");
+      setIsUploading(false);
+    },
+  });
 
   const lessonPlanMutation = useMutation({
-  mutationFn: (lessonData) => submitLessonPlan(lessonData),
-  onSuccess: (data) => {
-    setUploadSuccess(true);
-    onUpload(files);
-    setTimeout(handleClose, 5000);
-  },
-  onError: (error) => {
-    setUploadError("Lesson plan submission failed. Please try again.");
-    setIsUploading(false);
-  },
-});
+    mutationFn: (lessonData) => submitLessonPlan(lessonData),
+    onSuccess: (data) => {
+      setUploadSuccess(true);
+      onUpload(files);
+      setTimeout(handleClose, 5000);
+    },
+    onError: (error) => {
+      setUploadError("Lesson plan submission failed. Please try again.");
+      setIsUploading(false);
+    },
+  });
 
-const recordMutation = useMutation({
-  mutationFn: (recordData) => submitRecordOfWork(recordData),
-  onSuccess: (data) => {
-    setUploadSuccess(true);
-    onUpload(files);
-    setTimeout(handleClose, 5000);
-  },
-  onError: (error) => {
-    setUploadError("Record of work submission failed. Please try again.");
-    setIsUploading(false);
-  },
-});
+  const recordMutation = useMutation({
+    mutationFn: (recordData) => submitRecordOfWork(recordData),
+    onSuccess: (data) => {
+      setUploadSuccess(true);
+      onUpload(files);
+      setTimeout(handleClose, 5000);
+    },
+    onError: (error) => {
+      setUploadError("Record of work submission failed. Please try again.");
+      setIsUploading(false);
+    },
+  });
+
+  const finalTPMutation = useMutation({
+    mutationFn: submitFinalTPDocument,
+    onSuccess: () => {
+      setUploadSuccess(true);
+      onUpload(files);
+      setTimeout(handleClose, 5000);
+    },
+    onError: () => {
+      setUploadError("Final document submission failed. Please try again.");
+      setIsUploading(false);
+    },
+  });
 
   const handleSubmit = (e) => {
+    console.log("Submitting document with formData:", formData);
     e.preventDefault();
 
     if (!userId) {
@@ -132,8 +152,7 @@ const recordMutation = useMutation({
         comments: formData.comments,
       };
       lessonPlanMutation.mutate(lessonData);
-    }
-    else if (type === 'record-of-work') {
+    } else if (type === 'record-of-work') {
       const recordData = {
         userId,
         school: formData.school,
@@ -143,8 +162,24 @@ const recordMutation = useMutation({
         subject: formData.subject,
       };
       recordMutation.mutate(recordData);
-    }
-    else {
+    } else if (type === 'post-tp') {
+      if (files.length === 0) {
+        setUploadError("Please select a file to upload");
+        setIsUploading(false);
+        return;
+      }
+
+      const finalTPData = {
+        userId,
+        title: formData.title,
+        content: formData.content,
+        file: files[0],
+      };
+
+      console.log("Submitting final TP document with data:", finalTPData);
+      finalTPMutation.mutate(finalTPData);
+
+    } else {
       setUploadError("Unsupported document type");
       setIsUploading(false);
     }
@@ -156,6 +191,7 @@ const recordMutation = useMutation({
     if (type === 'school-documents') return files.length === 0;
     if (type === 'lesson-plan') return !formData.subject
     if (type === 'record-of-work') return !formData.school || !formData.learningArea;
+    if (type === 'post-tp') return !formData.title || !formData.content || files.length === 0;
     return true;
   };
 
@@ -180,6 +216,13 @@ const recordMutation = useMutation({
           title: 'Record of Work Submission',
           description: 'Submit your teaching records.',
           accept: '',
+          multiple: false
+        };
+      case 'post-tp':
+        return {
+          title: 'Final TP Submission',
+          description: 'Upload your final confidential report.',
+          accept: '.pdf',
           multiple: false
         };
       default:
@@ -218,6 +261,23 @@ const recordMutation = useMutation({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+              {type === 'post-tp' && (
+                <div className="space-y-4 mb-6">
+                  <input
+                    type="text"
+                    placeholder="Title"
+                    value={formData.title || ""}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full p-2 border rounded"
+                  />
+                  <textarea
+                    placeholder="Content / Description"
+                    value={formData.content || ""}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    className="w-full p-2 border rounded h-24"
+                  />
+                </div>
+              )}
               {type === 'school-documents' && (
                 <div className="space-y-4 mb-6">
                   <input

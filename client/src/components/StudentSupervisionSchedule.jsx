@@ -44,7 +44,7 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
     },
     onError: () => setError('Failed to enable final document submission'),
   });
-  
+
 
   const createSupervision = useMutation({
     mutationFn: createSupervisionSchedule,
@@ -78,8 +78,8 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
       prev.includes(subj)
         ? prev.filter((s) => s !== subj)
         : prev.length < 2
-        ? [...prev, subj]
-        : prev
+          ? [...prev, subj]
+          : prev
     );
   };
 
@@ -139,18 +139,19 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
         </div>
 
         {supervisionCount >= 3 && (
-  <button
-    disabled={!student?.canSubmitFinalDocs}
-    className={`w-full py-2 rounded mt-4 ${
-      student?.canSubmitFinalDocs
-        ? 'bg-blue-600 hover:bg-blue-700 text-white'
-        : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-    }`}
-  >
-    Submit Final Documents
-  </button>
-)}
-
+          <button
+            onClick={() => handleEnableFinalDocs(student.id)}
+            disabled={student?.canSubmitFinalDocs}
+            className={`w-full py-2 rounded mt-4 ${student?.canSubmitFinalDocs
+                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700 text-white'
+              }`}
+          >
+            {student?.canSubmitFinalDocs
+              ? 'Final Document Submission Allowed'
+              : 'Allow Final Document Submission'}
+          </button>
+        )}
 
         {/* Show dropdown to create new supervision */}
         {Array.isArray(supervision) && supervision.length > 0 && (
@@ -186,11 +187,10 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
                   <button
                     key={i}
                     onClick={() => toggleSubject(s)}
-                    className={`px-3 py-1 rounded-full border transition text-sm ${
-                      selectedSubjects.includes(s)
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
-                    }`}
+                    className={`px-3 py-1 rounded-full border transition text-sm ${selectedSubjects.includes(s)
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                      }`}
                   >
                     {s}
                   </button>

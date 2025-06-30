@@ -7,6 +7,7 @@ import DocumentUploadModal from '../components/DocumentUploadModal';
 import TpTimeline from '../components/TpTimeline';
 import StudentSupervisionCard from '../components/StudentSupervisionCard';
 import ActiveTPTasks from '../components/ActiveTPTasks';
+import FinalTPSubmission from '../components/FinalTPSubmission';
 import { fetchSchoolDataByStudentId, getDocumentStatusByUserId } from '../services/schoolServices';
 import { fetchSupervisionSchedule } from '../services/supervisionServices';
 import { fetchLessonPlanStatusToday } from '../services/lessonPlanServices';
@@ -68,7 +69,9 @@ const StudentDashboard = () => {
     refetchOnWindowFocus: false,
     retry: false,
   });
+
   console.log("Supervisor Info:", supervisorInfo);
+
   const handleAcceptSupervision = async (supervisionId) => {
     // You can POST to /api/supervision/accept
     console.log(`Accepted supervision ID: ${supervisionId}`);
@@ -79,15 +82,6 @@ const StudentDashboard = () => {
     setRejectSessionId(null);
     setRejectionReason('');
   };
-
-  // useEffect(() => {
-  //   if (supervisorInfo && supervisorInfo.length > 0 && currentPhase === 'active-tp') {
-  //     setCurrentPhase('assessment');
-  //   }
-  // }, [supervisorInfo, currentPhase]);
-
-  // console.log("currentPhase:", currentPhase);
-
 
   // Fetch record of work status
   const { data: recordOfWorkStatus, isLoading: isRecordOfWorkLoading, isError: isRecordOfWorkError, error: recordOfWorkError } = useQuery({
@@ -109,6 +103,15 @@ const StudentDashboard = () => {
       if (documentStatus.status === 'REJECTED') return 'document-submission';
       if (documentStatus.status === 'PENDING') return 'pre-tp';
 
+      // Post-TP condition: Student eligible to submit final docs
+      if (
+        documentStatus.status === 'APPROVED' &&
+        studentSchoolData?.student?.supervisionCount >= 3 &&
+        studentSchoolData?.student?.canSubmitFinalDocs === true
+      ) {
+        return 'post-tp';
+      }
+
       if (documentStatus.status === 'APPROVED' && supervisorInfo?.length > 0) {
         return 'assessment';
       }
@@ -119,7 +122,7 @@ const StudentDashboard = () => {
     };
 
     setCurrentPhase(determinePhase());
-  }, [documentStatus, supervisorInfo?.length]);
+  }, [documentStatus, supervisorInfo?.length, studentSchoolData]);
 
   // Handle document upload
   const handleUpload = (type) => {
@@ -171,25 +174,16 @@ const StudentDashboard = () => {
             ))}
           </div>
         );
-
       case 'post-tp':
         return (
-          <div className="bg-blue-50 p-4 rounded-lg mb-6">
-            <h3 className="font-semibold text-lg flex items-center mb-2">
-              <FiFile className="mr-2 text-blue-600" />
-              Final Submission
-            </h3>
-            <p className="mb-3">Congratulations on completing your Teaching Practice! Please submit your final documents for review.</p>
-            <button
-              onClick={() => handleUpload('final-documents')}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
-            >
-              <FiUpload className="mr-2" />
-              Submit Final Documents
-            </button>
-          </div>
+          <button
+            onClick={() => handleUpload('post-tp')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+          >
+            <FiUpload className="mr-2" />
+            Submit Final TP Document
+          </button>
         );
-
       case 'completed':
         return (
           <div className="bg-green-50 p-4 rounded-lg mb-6">
