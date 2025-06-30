@@ -139,7 +139,7 @@ export const getDocumentStatusByUserId = async (req, res) => {
 
 export const updateDocumentStatus = async (req, res) => {
   try {
-    const {  status } = req.body;
+    const { status } = req.body;
     const documentId = req.params.documentId;
     console.log("Updating document status:", { documentId, status });
 
@@ -160,5 +160,53 @@ export const updateDocumentStatus = async (req, res) => {
   } catch (error) {
     console.error("Error updating document status:", error);
     return res.status(500).json({ error: 'Failed to update document status.' });
+  }
+};
+
+export const submitFinalTPDocument = async (req, res) => {
+  console.log("Submitting final TP document with body:", req.body);
+  console.log("Received file:", req.file);
+
+  try {
+    const userId = req.user.userId;
+    const { title, content } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({ error: 'Title and content are required.' });
+    }
+
+    if (!req.file) {
+      console.error("No file provided in request:", req.file);
+      return res.status(400).json({ error: 'File is required.' });
+    }
+
+    const uploadDir = path.join(__dirname, '..', 'public', 'uploads', 'final_tp');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const uploadedFile = req.file;
+    const fileName = `${Date.now()}-${uploadedFile.originalname}`;
+    const filePath = path.join(uploadDir, fileName);
+    fs.writeFileSync(filePath, uploadedFile.buffer);
+
+    const student = await prisma.student.findFirst({ where: { userId } });
+    if (!student) {
+      return res.status(403).json({ error: 'Only students can submit final documents.' });
+    }
+
+    const document = await prisma.finalDocument.create({
+      data: {
+        title,
+        content,
+        fileUrl: fileName,
+        student: { connect: { id: student.id } },
+      },
+    });
+
+    return res.status(201).json(document);
+  } catch (error) {
+    console.error("Error submitting final TP document:", error);
+    return res.status(500).json({ error: 'Failed to submit final TP document.' });
   }
 };
