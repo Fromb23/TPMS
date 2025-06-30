@@ -113,7 +113,7 @@ export const StudentSupervisionSchedule = ({ student, onClose, handleEnableFinal
   const supervisionCount = Array.isArray(supervision) ? supervision[0]?.supervisionCount || 0 : 0;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center overflow-y-auto p-4 z-50">
       <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg space-y-4">
         <div className="flex justify-between">
           <h2 className="text-xl font-semibold">Supervision Schedule</h2>

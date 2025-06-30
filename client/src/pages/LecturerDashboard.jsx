@@ -226,7 +226,9 @@ const LecturerDashboard = () => {
       ]}
     >
       {selectedStudent && (
-        <StudentSupervisionSchedule student={selectedStudent} onClose={() => setSelectedStudent(null)} />
+        <div className="space-y-6">
+          < StudentSupervisionSchedule student={selectedStudent} onClose={() => setSelectedStudent(null)} />
+          </div>
       )}
       {/* Mobile Menu Toggle */}
       <button
