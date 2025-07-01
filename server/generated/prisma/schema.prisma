@@ -209,6 +209,7 @@ model FinalDocument {
   title     String
   content   String
   fileUrl   String?
+  status    Status   @default(PENDING)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
