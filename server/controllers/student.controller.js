@@ -7,7 +7,8 @@ export const fetchStudents = async (req, res) => {
     const students = await prisma.student.findMany({
       include: {
         user: true,
-        school: true, // full school model
+        school: true,
+        finalDocument: true,
         documents: {
           where: {
             type: 'TP_APPLICATION'

@@ -127,7 +127,6 @@ export const getDocumentStatusByUserId = async (req, res) => {
     const latestDocument = student.documents[0];
 
     const documentStatus = latestDocument ? latestDocument.status : null;
-    console.log('Latest document status:', documentStatus);
 
     return res.status(200).json({ status: documentStatus });
   } catch (err) {
@@ -136,6 +135,29 @@ export const getDocumentStatusByUserId = async (req, res) => {
   }
 };
 
+export const getFinalDocumentStatus = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const student = await prisma.student.findFirst({
+      where: { userId },
+      include: {
+        finalDocument: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found.' });
+    }
+    const latestFinalDocument = student.finalDocument[0];
+    const finalDocumentStatus = latestFinalDocument ? latestFinalDocument.status : null;
+    return res.status(200).json({ status: finalDocumentStatus });
+  } catch (err) {
+    console.error('Error fetching final document status:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 
 export const updateDocumentStatus = async (req, res) => {
   try {
