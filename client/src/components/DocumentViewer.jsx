@@ -18,7 +18,8 @@ const DocumentViewer = ({ student, onClose, userRole }) => {
     TP_APPLICATION: 'Teaching Practice Report',
     TP_TIMETABLE: 'School Timetable',
     TP_ASSESSMENT: 'Assessment Documents',
-    TP_RECORDS: 'Records of Work'
+    TP_RECORDS: 'Records of Work',
+    FINAL_DOCUMENT: 'Final TP Document'
   };
 
   const documents = (student.documents || []).map(doc => ({
@@ -155,8 +156,8 @@ const DocumentViewer = ({ student, onClose, userRole }) => {
                           </p>
                         </div>
                       </div>
-                      <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-600">
-                        {student.finalDocument[0]?.status }
+                      <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(student.finalDocument[0]?.status)}`}>
+                        {student.finalDocument[0]?.status}
                       </span>
                     </div>
                   </div>
