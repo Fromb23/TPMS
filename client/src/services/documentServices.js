@@ -66,3 +66,17 @@ export const submitFinalTPDocument = async ({ userId, title, content, file }) =>
     throw error;
   }
 };
+
+export  const getFinalDocumentStatus = async (userId) => {
+  try {
+    const response = await apiClient.get(`/documents/final-status/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching final document status:", error);
+    throw error;
+  }
+}

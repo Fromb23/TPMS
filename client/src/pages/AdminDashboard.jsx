@@ -30,7 +30,6 @@ const AdminDashboard = () => {
         refetchOnWindowFocus: false,
     });
     const enhancedStudentData = students?.map(student => {
-        // Step 1: Build a lookup map for normal docs
         const docMap = {};
         (student.documents || []).forEach(doc => {
             if (doc?.type) {
@@ -41,7 +40,6 @@ const AdminDashboard = () => {
             }
         });
 
-        // Step 2: Construct enhanced document structure (as-is)
         const structuredDocs = {
             tp: {
                 submitted: !!docMap['TP_APPLICATION'],
@@ -61,7 +59,6 @@ const AdminDashboard = () => {
             }
         };
 
-        // Step 3: Merge FINAL_DOCUMENT separately
         const finalDoc = student.finalDocument?.[0];
         const finalDocMapped = finalDoc
             ? {
