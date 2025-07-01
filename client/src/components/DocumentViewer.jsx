@@ -52,12 +52,12 @@ const DocumentViewer = ({ student, onClose, userRole }) => {
 
   const handleApprove = (docId) => {
     setApprovalStatus(prev => ({ ...prev, [docId]: 'approved' }));
-    updateDocStatus({ documentId: docId, status: 'APPROVED' });
+    updateDocStatus({ documentId: docId, status: 'APPROVED', isFinal: selectedDoc?.isFinal });
   };
 
   const handleReject = (docId) => {
     setApprovalStatus(prev => ({ ...prev, [docId]: 'rejected' }));
-    updateDocStatus({ documentId: docId, status: 'REJECTED' });
+    updateDocStatus({ documentId: docId, status: 'REJECTED', isFinal: selectedDoc?.isFinal });
   };
 
   const handleDownload = (file) => {
@@ -139,6 +139,28 @@ const DocumentViewer = ({ student, onClose, userRole }) => {
                     </div>
                   </div>
                 ))}
+                {student?.finalDocument?.[0] && (
+                  <div
+                    onClick={() => setSelectedDoc({ ...student.finalDocument[0], isFinal: true })}
+                    className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedDoc?.id === student.finalDocument[0].id ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50 border border-transparent'}`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center">
+                        <FiFileText className="mr-2 text-blue-500" />
+                        <div>
+                          <p className="font-medium">Final TP Document</p>
+                          <p className="text-xs text-gray-500 flex items-center">
+                            <FiClock className="mr-1" />
+                            Submitted on {student.finalDocument[0].createdAt?.slice(0, 10) || 'No date'}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-600">
+                        {student.finalDocument[0]?.status }
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -146,83 +168,82 @@ const DocumentViewer = ({ student, onClose, userRole }) => {
           {/* Document Preview */}
           <div className="w-full md:w-2/3 flex flex-col">
             {selectedDoc ? (
-              <>
-                <div className="p-4 border-b flex justify-between items-center">
-                  <h3 className="font-medium text-lg">{selectedDoc.title}</h3>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleDownload(selectedDoc.file)}
-                      className="flex items-center text-blue-600 hover:text-blue-800 p-2"
-                      title="Download"
-                    >
-                      <FiDownload />
-                    </button>
-                  </div>
-                </div>
+              (() => {
+                const fileName = selectedDoc.file || selectedDoc.fileUrl;
+                if (!fileName) return null;
 
-                <div className="flex-1 p-4 overflow-y-auto">
-                  {selectedDoc.submitted ? (
-                    <>
-                      {/* --- Preview --- */}
+                const fullPath = `http://localhost:3000/uploads/${selectedDoc.isFinal ? 'final_tp' : ''}/${encodeURIComponent(fileName)}`;
+
+                return (
+                  <>
+                    <div className="p-4 border-b flex justify-between items-center">
+                      <h3 className="font-medium text-lg">{selectedDoc.title}</h3>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleDownload(fileName)}
+                          className="flex items-center text-blue-600 hover:text-blue-800 p-2"
+                          title="Download"
+                        >
+                          <FiDownload />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 p-4 overflow-y-auto">
                       <div className="bg-gray-100 rounded-lg p-4 mb-4 h-64">
-                        {selectedDoc.file && (
-                          selectedDoc.file.toLowerCase().endsWith('.pdf') ? (
-                            <iframe
-                              src={`http://localhost:3000/uploads/${encodeURIComponent(selectedDoc.file)}`}
-                              title="PDF Preview"
-                              className="w-full h-full rounded"
-                            />
-                          ) : (
-                            <img
-                              src={`http://localhost:3000/uploads/${encodeURIComponent(selectedDoc.file)}`}
-                              alt="Document Preview"
-                              className="w-full h-full object-contain rounded"
-                            />
-                          )
+                        {fileName.toLowerCase().endsWith('.pdf') ? (
+                          <iframe
+                            src={fullPath}
+                            title="PDF Preview"
+                            className="w-full h-full rounded"
+                          />
+                        ) : (
+                          <img
+                            src={fullPath}
+                            alt="Document Preview"
+                            className="w-full h-full object-contain rounded"
+                          />
                         )}
                       </div>
+
                       <p className="text-sm text-gray-500 mt-2 text-center">
                         <a
-                          href={`http://localhost:3000/uploads/${encodeURIComponent(selectedDoc.file)}`}
+                          href={fullPath}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-500 underline"
                         >
                           View Document
-                        </a>{" "}
-                        - {selectedDoc.date}
+                        </a>
+                        {" "}- {selectedDoc.date}
                       </p>
-                      <div className="flex justify-end space-x-3 mt-4">
-                        {selectedDoc.status !== 'approved' && (
-                          <button
-                            onClick={() => handleApprove(selectedDoc.id)}
-                            className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                          >
-                            <FiCheck className="mr-2" />
-                            Approve
-                          </button>
+                      <div className="mt-6 flex flex-col md:flex-row justify-end items-center gap-4">
+                        {selectedDoc.status !== "approved" && (
+                          <div>
+                            <button
+                              onClick={() => handleApprove(selectedDoc.id)}
+                              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                            >
+                              Approve
+                            </button>
+                          </div>
                         )}
 
-                        {selectedDoc.status !== 'rejected' && (
-                          <button
-                            onClick={() => handleReject(selectedDoc.id)}
-                            className="flex items-center px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
-                          >
-                            <FiAlertCircle className="mr-2" />
-                            Reject
-                          </button>
+                        {selectedDoc.status !== "rejected" && (
+                          <div>
+                            <button
+                              onClick={() => handleReject(selectedDoc.id)}
+                              className="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                            >
+                              Reject
+                            </button>
+                          </div>
                         )}
                       </div>
-
-                    </>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <FiAlertCircle className="mx-auto text-3xl mb-3" />
-                      <p>This document has not been submitted yet</p>
                     </div>
-                  )}
-                </div>
-              </>
+                  </>
+                );
+              })()
             ) : (
               <div className="flex-1 flex items-center justify-center text-gray-500">
                 <div className="text-center">
@@ -232,7 +253,6 @@ const DocumentViewer = ({ student, onClose, userRole }) => {
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>
