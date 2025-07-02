@@ -6,6 +6,7 @@ import './index.css'
 import App from './App.jsx'
 import { Provider } from 'react-redux';
 import store from './redux/store.js';
+import { UserProvider } from './context/userContext.jsx';
 
 const queryClient = new QueryClient();
 
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
+        <UserProvider>
         <App />
+        </UserProvider>
       </Provider>
     </QueryClientProvider>
   </StrictMode>,

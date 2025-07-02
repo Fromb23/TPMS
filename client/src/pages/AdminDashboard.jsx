@@ -11,9 +11,10 @@ import {
 } from 'react-icons/fi';
 import { fetchAllLecturers } from '../services/lecturerServices';
 import { fetchAllStudents } from '../services/studentServices';
-import { StudentProfile } from '../components/StudentProfile';
+import { useUser } from '../context/userContext';
 
 const AdminDashboard = () => {
+    const { user, setUser } = useUser();
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -109,7 +110,6 @@ const AdminDashboard = () => {
         navigate(`/admin-dashboard/${student?.user?.id}`);
     };
     const handleViewDocuments = (student) => {
-        const user = JSON.parse(localStorage.getItem('user'));
         const dashboardBase = user?.role === 'LECTURER' ? 'lecturer-dashboard' : 'admin-dashboard';
         navigate(`/${dashboardBase}/${student?.user?.id}/documents`);
 

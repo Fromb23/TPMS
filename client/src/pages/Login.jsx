@@ -7,6 +7,26 @@ import { login } from '../services/authServices';
 
 const Login = () => {
 
+    const mutation = useMutation({
+        mutationFn: login,
+        onSuccess: (data) => {
+            const { token, user } = data;
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify(user));
+
+            if (user.role === 'ADMIN') {
+                window.location.href = '/admin-dashboard';
+            } else if (user.role === 'LECTURER') {
+                window.location.href = '/lecturer-dashboard';
+            } else if (user.role === 'STUDENT') {
+            window.location.href = '/student-dashboard';
+            }
+        },
+        // onError: (error) => {
+        //     console.error('Login error:', error);
+        // }
+    });
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -18,19 +38,8 @@ const Login = () => {
             return;
         }
         mutation.mutate({ email, password });
-        }
+    }
 
-    const mutation = useMutation({
-        mutationFn: ({ email, password }) => login(email, password),
-        onSuccess: (data) => {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            window.location.href = '/student-dashboard';
-        },
-        onError: (error) => {
-            console.error('Login error:', error);
-        }
-    });
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#05011c] to-[#1a1a2e]">
             <div className="bg-white/10 backdrop-blur-md rounded-xl p-8 w-full max-w-md mx-4">
@@ -82,7 +91,7 @@ const Login = () => {
                         type="submit"
                         className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg transition-colors duration-300"
                     >
-                        {mutation.isLoading ? 'Please wait...': 'Login'} <FaArrowRight />
+                        {mutation.isLoading ? 'Please wait...' : 'Login'} <FaArrowRight />
                     </button>
                 </form>
             </div>
