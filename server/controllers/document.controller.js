@@ -127,7 +127,6 @@ export const getDocumentStatusByUserId = async (req, res) => {
     const latestDocument = student.documents[0];
 
     const documentStatus = latestDocument ? latestDocument.status : null;
-    console.log('Latest document status:', documentStatus);
 
     return res.status(200).json({ status: documentStatus });
   } catch (err) {
@@ -136,6 +135,29 @@ export const getDocumentStatusByUserId = async (req, res) => {
   }
 };
 
+export const getFinalDocumentStatus = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const student = await prisma.student.findFirst({
+      where: { userId },
+      include: {
+        finalDocument: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found.' });
+    }
+    const latestFinalDocument = student.finalDocument[0];
+    const finalDocumentStatus = latestFinalDocument ? latestFinalDocument.status : null;
+    return res.status(200).json({ status: finalDocumentStatus });
+  } catch (err) {
+    console.error('Error fetching final document status:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 
 export const updateDocumentStatus = async (req, res) => {
   try {
@@ -164,8 +186,6 @@ export const updateDocumentStatus = async (req, res) => {
 };
 
 export const submitFinalTPDocument = async (req, res) => {
-  console.log("Submitting final TP document with body:", req.body);
-  console.log("Received file:", req.file);
 
   try {
     const userId = req.user.userId;
@@ -208,5 +228,30 @@ export const submitFinalTPDocument = async (req, res) => {
   } catch (error) {
     console.error("Error submitting final TP document:", error);
     return res.status(500).json({ error: 'Failed to submit final TP document.' });
+  }
+};
+
+export const updateFinalDocumentStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const documentId = req.params.documentId;
+
+    if (!documentId || !status) {
+      return res.status(400).json({ error: 'Document ID and status are required.' });
+    }
+
+    if (!['APPROVED', 'REJECTED'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value.' });
+    }
+
+    const updatedDocument = await prisma.finalDocument.update({
+      where: { id: documentId },
+      data: { status },
+    });
+
+    return res.status(200).json(updatedDocument);
+  } catch (error) {
+    console.error("Error updating final document status:", error);
+    return res.status(500).json({ error: 'Failed to update final document status.' });
   }
 };

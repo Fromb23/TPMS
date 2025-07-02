@@ -19,19 +19,30 @@ const token = localStorage.getItem('token')
 //     }
 // }
 
-export const updateDocumentStatus = async ({ documentId, status }) => {
-  const response = await apiClient.patch(
-    `/documents/${documentId}/status`,
-    { status },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+export const updateDocumentStatus = async ({ documentId, status, isFinal }) => {
+  const endpoint = isFinal
+    ? `/documents/${documentId}/final-doc-update`
+    : `/documents/${documentId}/status`;
 
-  return response.data;
+  try {
+    console.log("Sending to endpoint:", endpoint, "with status:", status);
+
+    const response = await apiClient.patch(
+      endpoint,
+      { status },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update document status:", error);
+    throw error;
+  }
 };
+
 
 export const submitFinalTPDocument = async ({ userId, title, content, file }) => {
   try {
@@ -55,3 +66,17 @@ export const submitFinalTPDocument = async ({ userId, title, content, file }) =>
     throw error;
   }
 };
+
+export  const getFinalDocumentStatus = async (userId) => {
+  try {
+    const response = await apiClient.get(`/documents/final-status/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching final document status:", error);
+    throw error;
+  }
+}

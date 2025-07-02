@@ -7,10 +7,10 @@ import DocumentUploadModal from '../components/DocumentUploadModal';
 import TpTimeline from '../components/TpTimeline';
 import StudentSupervisionCard from '../components/StudentSupervisionCard';
 import ActiveTPTasks from '../components/ActiveTPTasks';
-import FinalTPSubmission from '../components/FinalTPSubmission';
 import { fetchSchoolDataByStudentId, getDocumentStatusByUserId } from '../services/schoolServices';
 import { fetchSupervisionSchedule } from '../services/supervisionServices';
 import { fetchLessonPlanStatusToday } from '../services/lessonPlanServices';
+import { getFinalDocumentStatus } from '../services/documentServices';
 import {
   FiCalendar, FiBook, FiUpload, FiMessageSquare,
   FiCheckCircle, FiClock, FiAlertCircle, FiFileText,
@@ -30,6 +30,15 @@ const StudentDashboard = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?.id;
 
+  const { data: finalDocumentStatus, isLoading: isFinalDocLoading, isError: isFinalDocError, error: finalDocError } = useQuery({
+    queryKey: ['final-document-status', userId],
+    queryFn: () => getFinalDocumentStatus(userId),
+    enabled: !!userId,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+  console.log("Final Document Status:", finalDocumentStatus);
+
   const { data: documentStatus, isLoading: isStatusLoading, isError: isStatusError, error: statusError } = useQuery({
     queryKey: ['student-document-status', userId],
     queryFn: () => getDocumentStatusByUserId(userId),
@@ -37,6 +46,7 @@ const StudentDashboard = () => {
     refetchOnWindowFocus: false,
     retry: false,
   });
+  console.log("Document Status in student dashboard:", documentStatus);
 
   const { data: studentSchoolData, isLoading: isSchoolLoading, isError: isSchoolError, error: schoolError } = useQuery({
     queryKey: ['student-school-info', userId],
@@ -98,6 +108,10 @@ const StudentDashboard = () => {
   // Simulate phase changes based on TP timeline
   useEffect(() => {
     const determinePhase = () => {
+          
+        if (finalDocumentStatus?.status === 'APPROVED') return 'completed';
+    if (finalDocumentStatus?.status === 'REJECTED') return 'post-tp'; 
+
       if (!documentStatus) return 'document-submission';
 
       if (documentStatus.status === 'REJECTED') return 'document-submission';
@@ -122,7 +136,7 @@ const StudentDashboard = () => {
     };
 
     setCurrentPhase(determinePhase());
-  }, [documentStatus, supervisorInfo?.length, studentSchoolData]);
+  }, [documentStatus, supervisorInfo?.length, studentSchoolData, finalDocumentStatus]);
 
   // Handle document upload
   const handleUpload = (type) => {
@@ -174,16 +188,24 @@ const StudentDashboard = () => {
             ))}
           </div>
         );
-      case 'post-tp':
-        return (
-          <button
-            onClick={() => handleUpload('post-tp')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
-          >
-            <FiUpload className="mr-2" />
-            Submit Final TP Document
-          </button>
-        );
+case 'post-tp':
+  return (
+    <div className="space-y-3">
+      {finalDocumentStatus?.status === 'REJECTED' && (
+        <div className="text-sm text-red-600 bg-red-100 border border-red-300 rounded p-3">
+          Your previous final TP document was <strong>rejected</strong>. Please review it and resubmit.
+        </div>
+      )}
+
+      <button
+        onClick={() => handleUpload('post-tp')}
+        className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+      >
+        <FiUpload className="mr-2" />
+        Submit Final TP Document
+      </button>
+    </div>
+  );
       case 'completed':
         return (
           <div className="bg-green-50 p-4 rounded-lg mb-6">

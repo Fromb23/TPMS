@@ -30,7 +30,6 @@ const AdminDashboard = () => {
         refetchOnWindowFocus: false,
     });
     const enhancedStudentData = students?.map(student => {
-        // Map backend documents to { type => { status, type } }
         const docMap = {};
         (student.documents || []).forEach(doc => {
             if (doc?.type) {
@@ -41,25 +40,45 @@ const AdminDashboard = () => {
             }
         });
 
+        const structuredDocs = {
+            tp: {
+                submitted: !!docMap['TP_APPLICATION'],
+                ...(docMap['TP_APPLICATION'] || {})
+            },
+            timetable: {
+                submitted: !!docMap['TP_TIMETABLE'],
+                ...(docMap['TP_TIMETABLE'] || {})
+            },
+            assessment: {
+                submitted: !!docMap['TP_ASSESSMENT'],
+                ...(docMap['TP_ASSESSMENT'] || {})
+            },
+            records: {
+                submitted: !!docMap['TP_RECORDS'],
+                ...(docMap['TP_RECORDS'] || {})
+            }
+        };
+
+        const finalDoc = student.finalDocument?.[0];
+        const finalDocMapped = finalDoc
+            ? {
+                submitted: true,
+                type: finalDoc.type,
+                status: finalDoc.status,
+                isFinal: true
+            }
+            : {
+                submitted: false,
+                type: 'FINAL_DOCUMENT',
+                status: 'MISSING',
+                isFinal: true
+            };
+
         return {
             ...student,
             documents: {
-                tp: {
-                    submitted: !!docMap['TP_APPLICATION'],
-                    ...(docMap['TP_APPLICATION'] || {})
-                },
-                timetable: {
-                    submitted: !!docMap['TP_TIMETABLE'],
-                    ...(docMap['TP_TIMETABLE'] || {})
-                },
-                assessment: {
-                    submitted: !!docMap['TP_ASSESSMENT'],
-                    ...(docMap['TP_ASSESSMENT'] || {})
-                },
-                records: {
-                    submitted: !!docMap['TP_RECORDS'],
-                    ...(docMap['TP_RECORDS'] || {})
-                }
+                ...structuredDocs,
+                final: finalDocMapped
             },
             isBlocked: Math.random() > 0.9,
             lastLogin: ['Today', '2 days ago', '1 week ago'][Math.floor(Math.random() * 3)]
@@ -211,7 +230,7 @@ const AdminDashboard = () => {
                     badgeText = 'Rejected';
                     badgeClass = 'bg-red-100 text-red-800';
                 }
-                else if ( status === 'PENDING' ) {
+                else if (status === 'PENDING') {
                     badgeText = 'Pending';
                     badgeClass = 'bg-yellow-100 text-yellow-800';
                 }
