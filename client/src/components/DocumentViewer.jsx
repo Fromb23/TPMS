@@ -31,8 +31,6 @@ const DocumentViewer = ({ student, onClose, userRole }) => {
     type: doc.type
   }));
 
-  console.log("Student:", student);
-  console.log("Documents:", documents);
   const filteredDocuments = documents.filter(doc => {
     if (userRole === 'ADMIN') return true;
     if (userRole === 'LECTURER') return doc.type !== 'TP_APPLICATION';
