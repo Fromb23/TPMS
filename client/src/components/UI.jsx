@@ -1,6 +1,5 @@
 import { FiAlertCircle, FiCheckCircle, FiClock } from 'react-icons/fi';
 
-// Progress Steps Component
 export const ProgressSteps = ({ stages, currentStage }) => {
   return (
     <div className="flex items-center justify-between relative">
@@ -23,7 +22,6 @@ export const ProgressSteps = ({ stages, currentStage }) => {
   );
 };
 
-// Status Card Component
 export const StatusCard = ({ icon, title, value, subtitle, status = 'normal' }) => {
   const statusColors = {
     normal: 'bg-blue-100 text-blue-800',

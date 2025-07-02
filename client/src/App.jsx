@@ -11,7 +11,6 @@ import ZoneDashboard from './pages/Zone';
 import NotAuthorized from './pages/NotAuthorized';
 
 import { Outlet } from 'react-router-dom';
-import { StudentProfile } from './components/StudentProfile';
 import StudentProfileWrapper from './components/StudentProfileWrapper';
 
 function App() {

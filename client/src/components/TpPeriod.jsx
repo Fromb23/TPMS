@@ -20,7 +20,6 @@ const TpPeriod = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simulate API call
     setTpPeriod(formData);
     setSuccess(true);
     setIsEditing(false);
