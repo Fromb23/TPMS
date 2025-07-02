@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useQuery } from '@tanstack/react-query';
 import { Layout } from '../components/Layout';
 import { Table } from '../components/Table';
@@ -366,14 +367,10 @@ const AdminDashboard = () => {
                 { label: 'Admin Dashboard', href: '/admin' }
             ]}
         >
-            {/* {selectedStudent && !selectedDocument && (
-                <DocumentViewer
-                    student={selectedStudent}
-                    onClose={() => setSelectedStudent(null)}
-                    documents={selectedStudent.documents}
-                    isBlocked={selectedStudent.isBlocked}
-                />
-            )} */}
+            <Helmet>
+                <title>Admin Dashboard - TPMS</title>
+                <meta name="description" content="Admin dashboard for managing students and lecturers." />
+            </Helmet>
             {/* Tabs for Students/Lecturers */}
             <div className="flex border-b mb-6">
                 <button

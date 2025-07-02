@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { StrictMode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
 import './index.css'
 import App from './App.jsx'
 import { Provider } from 'react-redux';
@@ -14,9 +15,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
-        <UserProvider>
-        <App />
-        </UserProvider>
+        <HelmetProvider>
+          <UserProvider>
+            <App />
+          </UserProvider>
+        </HelmetProvider>
       </Provider>
     </QueryClientProvider>
   </StrictMode>,

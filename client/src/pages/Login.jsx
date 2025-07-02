@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { FaEnvelope, FaLock, FaArrowRight } from 'react-icons/fa';
@@ -43,6 +44,10 @@ const Login = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#05011c] to-[#1a1a2e]">
             <div className="bg-white/10 backdrop-blur-md rounded-xl p-8 w-full max-w-md mx-4">
+            <Helmet>
+                <title>Login - TPMS</title>
+                <meta name="description" content="Login to the TPMS system" />
+            </Helmet>
                 <h1 className="text-3xl font-bold text-white mb-6 text-center">Welcome Back</h1>
                 {mutation.error && (
                     <div className="bg-red-500 text-white p-4 rounded-lg mb-4">
