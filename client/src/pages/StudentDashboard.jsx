@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Layout } from '../components/Layout';
 import { useQuery } from '@tanstack/react-query';
+import { useUser } from '../context/userContext';
 import { StatusCard, QuickAction } from '../components/UI';
 import { DocumentSubmissionPhase } from '../components/DocumentSubmissionPhase';
 import DocumentUploadModal from '../components/DocumentUploadModal';
@@ -25,9 +27,7 @@ const StudentDashboard = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [uploadType, setUploadType] = useState('');
   const [showSupervisionCard, setShowSupervisionCard] = useState(false);
-
-
-  const user = JSON.parse(localStorage.getItem("user"));
+  const { user } = useUser();
   const userId = user?.id;
 
   const { data: finalDocumentStatus, isLoading: isFinalDocLoading, isError: isFinalDocError, error: finalDocError } = useQuery({
@@ -106,37 +106,50 @@ const StudentDashboard = () => {
   });
 
   // Simulate phase changes based on TP timeline
-  useEffect(() => {
-    const determinePhase = () => {
-          
-        if (finalDocumentStatus?.status === 'APPROVED') return 'completed';
-    if (finalDocumentStatus?.status === 'REJECTED') return 'post-tp'; 
-
-      if (!documentStatus) return 'document-submission';
-
-      if (documentStatus.status === 'REJECTED') return 'document-submission';
-      if (documentStatus.status === 'PENDING') return 'pre-tp';
-
-      // Post-TP condition: Student eligible to submit final docs
-      if (
-        documentStatus.status === 'APPROVED' &&
-        studentSchoolData?.student?.supervisionCount >= 3 &&
-        studentSchoolData?.student?.canSubmitFinalDocs === true
-      ) {
-        return 'post-tp';
-      }
-
-      if (documentStatus.status === 'APPROVED' && supervisorInfo?.length > 0) {
-        return 'assessment';
-      }
-
-      if (documentStatus.status === 'APPROVED') return 'active-tp';
-
+useEffect(() => {
+  if (
+    finalDocumentStatus === undefined ||
+    documentStatus === undefined ||
+    studentSchoolData === undefined ||
+    supervisorInfo === undefined
+  ) {
+    // Don't evaluate yet – wait for all data
+    return;
+  }
+  const determinePhase = () => {
+    if (finalDocumentStatus?.status === 'APPROVED') {
+      return 'completed';
+    } else if (finalDocumentStatus?.status === 'REJECTED') {
+      return 'post-tp';
+    } else if (!documentStatus || documentStatus.status === 'REJECTED') {
       return 'document-submission';
-    };
+    } else if (documentStatus.status === 'PENDING') {
+      return 'pre-tp';
+    } else if (
+      documentStatus.status === 'APPROVED' &&
+      studentSchoolData?.student?.supervisionCount >= 3 &&
+      studentSchoolData?.student?.canSubmitFinalDocs
+    ) {
+      return 'post-tp';
+    } else if (
+      documentStatus.status === 'APPROVED' &&
+      supervisorInfo.length > 0
+    ) {
+      return 'assessment';
+    } else if (documentStatus.status === 'APPROVED') {
+      return 'active-tp';
+    } else {
+      return 'error';
+    }
+  };
 
-    setCurrentPhase(determinePhase());
-  }, [documentStatus, supervisorInfo?.length, studentSchoolData, finalDocumentStatus]);
+  setCurrentPhase(determinePhase());
+}, [
+  documentStatus,
+  supervisorInfo,
+  studentSchoolData,
+  finalDocumentStatus
+]);
 
   // Handle document upload
   const handleUpload = (type) => {
@@ -188,24 +201,24 @@ const StudentDashboard = () => {
             ))}
           </div>
         );
-case 'post-tp':
-  return (
-    <div className="space-y-3">
-      {finalDocumentStatus?.status === 'REJECTED' && (
-        <div className="text-sm text-red-600 bg-red-100 border border-red-300 rounded p-3">
-          Your previous final TP document was <strong>rejected</strong>. Please review it and resubmit.
-        </div>
-      )}
+      case 'post-tp':
+        return (
+          <div className="space-y-3">
+            {finalDocumentStatus?.status === 'REJECTED' && (
+              <div className="text-sm text-red-600 bg-red-100 border border-red-300 rounded p-3">
+                Your previous final TP document was <strong>rejected</strong>. Please review it and resubmit.
+              </div>
+            )}
 
-      <button
-        onClick={() => handleUpload('post-tp')}
-        className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
-      >
-        <FiUpload className="mr-2" />
-        Submit Final TP Document
-      </button>
-    </div>
-  );
+            <button
+              onClick={() => handleUpload('post-tp')}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+            >
+              <FiUpload className="mr-2" />
+              Submit Final TP Document
+            </button>
+          </div>
+        );
       case 'completed':
         return (
           <div className="bg-green-50 p-4 rounded-lg mb-6">
@@ -219,7 +232,15 @@ case 'post-tp':
         );
 
       default:
-        return null;
+        return (
+          <div className="bg-red-50 p-4 rounded-lg mb-6"> 
+            <h3 className="font-semibold text-lg flex items-center mb-2">
+              <FiAlertCircle className="mr-2 text-red-600" />
+              Error
+            </h3>
+            <p>Unable to determine your current phase. Please contact support.</p>
+          </div>
+        );
     }
   };
 
@@ -232,6 +253,10 @@ case 'post-tp':
         { label: 'TP Dashboard', href: '/student-dashboard' }
       ]}
     >
+      <Helmet>
+        <title>Student Teacher Dashboard</title>
+        <meta name="description" content="Dashboard for student teachers to manage their Teaching Practice." />
+      </Helmet>
       <div className="space-y-6">
         <TpTimeline currentPhase={currentPhase} documentStatus={documentStatus} />
 

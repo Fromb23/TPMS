@@ -93,29 +93,29 @@ const ZonesDashboard = () => {
       setZones(allZones);
     }
   }, [allZones]);
-  useEffect(() => {
-    if (!zones || zones.length === 0) return;
+  // useEffect(() => {
+  //   if (!zones || zones.length === 0) return;
 
-    const countyMap = {};
+  //   const countyMap = {};
 
-    zones.forEach(zone => {
-      const { county, schools = 0 } = zone;
+  //   zones.forEach(zone => {
+  //     const { county, schools = 0 } = zone;
 
-      if (!countyMap[county]) {
-        countyMap[county] = {
-          id: Object.keys(countyMap).length + 1,
-          name: county,
-          zones: 1,
-          schools: schools || 0,
-        };
-      } else {
-        countyMap[county].zones += 1;
-        countyMap[county].schools += schools || 0;
-      }
-    });
+  //     if (!countyMap[county]) {
+  //       countyMap[county] = {
+  //         id: Object.keys(countyMap).length + 1,
+  //         name: county,
+  //         zones: 1,
+  //         schools: schools || 0,
+  //       };
+  //     } else {
+  //       countyMap[county].zones += 1;
+  //       countyMap[county].schools += schools || 0;
+  //     }
+  //   });
 
-    setCounties(Object.values(countyMap));
-  }, [zones]);
+  //   setCounties(Object.values(countyMap));
+  // }, [zones]);
 
   const handleInputChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -235,6 +235,8 @@ const ZonesDashboard = () => {
       </div>
     }
   ];
+
+  console.log("Counties:", counties);
 
   return (
     <Layout

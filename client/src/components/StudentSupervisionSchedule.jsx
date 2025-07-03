@@ -8,6 +8,7 @@ import {
 } from '../services/supervisionServices';
 
 export const StudentSupervisionSchedule = ({ student, onClose }) => {
+  console.log("Rendering StudentSupervisionSchedule for student:", student);
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState([]);
@@ -32,7 +33,7 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
   });
 
   const handleEnableFinalDocs = (studentId) => {
-    enableFinalDocumentSubmission.mutate(studentId);
+    enableFinalDocumentSubmission.mutate({studentId, status: true });
   };
   const enableFinalDocumentSubmission = useMutation({
     mutationFn: enableStudentFinalDocumentSubmission,

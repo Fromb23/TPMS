@@ -64,9 +64,10 @@ export const confirmStudentSupervision = async ({ supervisionId, isSupervised, s
   }
 }
 
-export const enableStudentFinalDocumentSubmission = async (studentId) => {
+export const enableStudentFinalDocumentSubmission = async ({ studentId }) => {
+  console.log("Enabling final document submission for student:", studentId);
   try {
-    const response = await apiClient.patch(`/supervision/${studentId}/enable-final-docs`, {}, {
+    const response = await apiClient.patch(`/supervision/${studentId}/enable-final-docs`,{}, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",

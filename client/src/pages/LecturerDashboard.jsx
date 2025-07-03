@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Layout } from '../components/Layout';
 import { Table } from '../components/Table';
 import { StudentSupervisionSchedule } from '../components/StudentSupervisionSchedule';
@@ -225,6 +226,10 @@ const LecturerDashboard = () => {
         { label: 'Dashboard', href: '/lecturer-dashboard' }
       ]}
     >
+      <Helmet>
+        <title>TPMS - Lecturer Dashboard</title>
+        <meta name="description" content="Manage your students, view schedules, and track progress." />
+      </Helmet>
       {selectedStudent && (
         <div className="space-y-6">
           < StudentSupervisionSchedule student={selectedStudent} onClose={() => setSelectedStudent(null)} />
