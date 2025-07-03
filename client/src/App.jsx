@@ -9,6 +9,7 @@ import PrivateRoute from './components/PrivateRoute';
 import TpPeriod from './components/TpPeriod';
 import ZoneDashboard from './pages/Zone';
 import NotAuthorized from './pages/NotAuthorized';
+import TpGuideline from './components/TpGuideline';
 
 import { Outlet } from 'react-router-dom';
 import StudentProfileWrapper from './components/StudentProfileWrapper';
@@ -21,7 +22,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        <Route path="/admin-dashboard" element={<PrivateRoute allowedRoles={['ADMIN', 'LECTURER']} />}>
+        <Route path="/admin-dashboard" element={<PrivateRoute allowedRoles={['ADMIN']} />}>
           <Route index element={<AdminDashboard />} />
           <Route path=":studentId/*" element={<StudentProfileWrapper />} />
         </Route>
@@ -29,13 +30,13 @@ function App() {
         <Route
           path="/admin/zones"
           element={
-            <PrivateRoute allowedRoles={['LECTURER', 'STUDENT', 'ADMIN']}>
+            <PrivateRoute allowedRoles={['ADMIN']}>
               <ZoneDashboard />
             </PrivateRoute>
           }
         />
         <Route path="/admin/tp-period" element={
-          <PrivateRoute allowedRoles={['ADMIN', 'LECTURER']}>
+          <PrivateRoute allowedRoles={['ADMIN']}>
             <Outlet />
           </PrivateRoute>
         }>
@@ -50,10 +51,18 @@ function App() {
 
         {/* Student */}
         <Route path="/student-dashboard" element={
-          <PrivateRoute allowedRoles={['STUDENT', 'LECTURER', 'ADMIN']}>
+          <PrivateRoute allowedRoles={['STUDENT']}>
             <StudentDashboard />
           </PrivateRoute>
         } />
+        <Route
+          path="/resources/guidelines"
+          element={
+            <PrivateRoute allowedRoles={['STUDENT']}>
+              <TpGuideline />
+            </PrivateRoute>
+          }
+        />
 
         <Route path="/unauthorized" element={<NotAuthorized />} />
       </Routes>
