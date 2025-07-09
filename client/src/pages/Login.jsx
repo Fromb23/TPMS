@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -7,6 +8,7 @@ import { login } from '../services/authServices';
 
 
 const Login = () => {
+    const navigate = useNavigate();
 
     const mutation = useMutation({
         mutationFn: login,
@@ -16,11 +18,16 @@ const Login = () => {
             localStorage.setItem('user', JSON.stringify(user));
 
             if (user.role === 'ADMIN') {
-                window.location.href = '/admin-dashboard';
+                navigate('/admin-dashboard');
             } else if (user.role === 'LECTURER') {
-                window.location.href = '/lecturer-dashboard';
+                navigate('/lecturer-dashboard');
             } else if (user.role === 'STUDENT') {
-            window.location.href = '/student-dashboard';
+                console.log('User has agreed to terms:', user.hasAgreedTerms);
+                if (user?.hasAgreedTerms) {
+                    navigate('/student-dashboard');
+                } else {  
+                    navigate('/resources/guidelines');
+                }
             }
         },
         // onError: (error) => {

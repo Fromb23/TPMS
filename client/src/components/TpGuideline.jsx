@@ -2,17 +2,49 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Layout } from '../components/Layout';
 import { useUser } from '../context/userContext';
+import { useMutation } from '@tanstack/react-query';
+import apiClient from '../api/api';
 
-export const TpGuideline = () => {
+const TpGuideline = () => {
   const { user } = useUser();
   const [agreed, setAgreed] = useState(false);
   const [expandedRule, setExpandedRule] = useState(null);
 
   const handleConfirm = () => {
-    agreed 
-      ? alert("Confirmation successful! You may proceed with your TP.")
-      : alert("Please agree to the guidelines first.");
+    Mutation.mutate()
   };
+  const token = localStorage.getItem('token');
+
+  const Mutation = useMutation({
+    mutationFn: async () => {
+      try {
+        const response = await apiClient.post(
+          '/auth/tp-guidelines/confirm',
+          { hasAgreedTerms: true },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        return response.data;
+      } catch (error) {
+        console.error('Error confirming agreement:', error);
+        throw new Error('Failed to confirm agreement');
+      }
+    },
+    onSuccess: (data) => {
+      localStorage.setItem('user', JSON.stringify({ ...user, hasAgreedTerms: true }));
+      alert('Thank you for confirming your agreement to the guidelines!');
+      window.location.href = '/student-dashboard';
+    },
+    onError: (error) => {
+      alert('Error confirming agreement: ' + error.message);
+    },
+  });
+
 
   const rules = [
     { title: "Professionalism", content: "Maintain high standards of professionalism at all times during teaching practice." },
@@ -34,9 +66,10 @@ export const TpGuideline = () => {
 
   return (
     <Layout
-      title="TP Guideline"
+      title="TP Guidelines"
+      hideSidebar={true}
       breadcrumbs={[
-        { label: 'TP Guideline', href: '/resources/guidelines' }
+        { label: 'TP Guidelines', href: '/resources/guidelines' }
       ]}
     >
       <Helmet>
@@ -46,13 +79,32 @@ export const TpGuideline = () => {
 
       <div className="container mx-auto p-4 md:p-6">
         <div className="bg-white rounded-xl shadow-md overflow-hidden p-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-blue-700 mb-4">Teaching Practice Guidelines</h1>
-          <p className="mb-6 text-gray-700">Dear {user?.name || 'Student'}, these guidelines govern your conduct during Teaching Practice:</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-blue-700 mb-4">
+            Welcome to Your Teaching Practice Journey!
+          </h1>
 
+          {/* Warm introductory message */}
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r">
+            <p className="text-gray-800">
+              Dear <span className="font-semibold text-blue-600">{user?.fullName || 'Future Educator'}</span>,<br /><br />
+              Congratulations on reaching this important milestone in your teaching career! These guidelines are designed to help you navigate your teaching practice successfully.
+              Remember, every great teacher started exactly where you are now. This is your opportunity to grow, learn, and develop the skills that will shape your professional future.
+              We're excited to support you on this transformative journey!
+            </p>
+          </div>
+
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            Teaching Practice Guidelines
+          </h2>
+          <p className="mb-6 text-gray-700">
+            Please review these essential guidelines that will help ensure a productive and professional experience:
+          </p>
+
+          {/* Rest of the component remains the same */}
           <div className="space-y-3 mb-6">
             {rules.map((rule, index) => (
               <div key={index} className="border-l-4 border-blue-200 pl-4">
-                <button 
+                <button
                   onClick={() => setExpandedRule(expandedRule === index ? null : index)}
                   className="w-full text-left font-medium text-blue-600 hover:text-blue-800 focus:outline-none"
                 >
@@ -65,24 +117,33 @@ export const TpGuideline = () => {
             ))}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <label className="inline-flex items-center">
-              <input
-                type="checkbox"
-                checked={agreed}
-                onChange={() => setAgreed(!agreed)}
-                className="rounded h-5 w-5 text-blue-600"
-              />
-              <span className="ml-2 text-gray-700">I agree to these guidelines</span>
-            </label>
-            <button
-              onClick={handleConfirm}
-              disabled={!agreed}
-              className={`px-6 py-2 rounded-md ${agreed ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
-            >
-              Confirm Agreement
-            </button>
-          </div>
+          {/* Agreement section */}
+          {!user?.hasAgreedTerms && (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-8">
+              <label className="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={() => setAgreed(!agreed)}
+                  className="rounded h-5 w-5 text-blue-600"
+                />
+                <span className="ml-2 text-gray-700">
+                  I understand and agree to follow these guidelines throughout my teaching practice
+                </span>
+              </label>
+              <button
+                onClick={handleConfirm}
+                disabled={!agreed}
+                className={`px-6 py-2 rounded-md transition ${agreed
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+              >
+                Confirm My Commitment
+              </button>
+            </div>
+          )}
+
         </div>
       </div>
     </Layout>

@@ -3,13 +3,14 @@ import { Sidebar } from './Sidebar';
 import { Profile } from './Profile';
 import { Breadcrumb } from './BreadCrumb';
 
-export const Layout = ({ children, title, role, breadcrumbs = [] }) => {
+export const Layout = ({ children, title, role, breadcrumbs = [], hideSidebar=false }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  return (
+return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
+      
       {/* Mobile Sidebar */}
-      {sidebarOpen && (
+      {!hideSidebar && sidebarOpen && (
         <div
           className="fixed inset-0 z-30 flex lg:hidden"
           onClick={() => setSidebarOpen(false)}
@@ -25,21 +26,29 @@ export const Layout = ({ children, title, role, breadcrumbs = [] }) => {
       )}
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:block fixed top-0 bottom-0 w-64 bg-white shadow-sm z-10">
-        <Sidebar role={role} />
-      </div>
+      {!hideSidebar && (
+        <div className="hidden md:block fixed top-0 bottom-0 w-64 bg-white shadow-sm z-10">
+          <Sidebar role={role} />
+        </div>
+      )}
 
       {/* Main Layout Area */}
-      <div className="flex flex-col flex-1 w-full h-screen md:ml-64 overflow-hidden">
+      <div
+        className={`flex flex-col flex-1 w-full h-screen ${
+          hideSidebar ? '' : 'md:ml-64'
+        } overflow-hidden`}
+      >
         {/* Header */}
         <header className="fixed top-0 left-0 right-0 z-20 bg-white shadow-sm">
           <div className="px-4 py-3 sm:px-6 flex justify-between items-center">
-            <button
-              className="md:hidden text-gray-600 text-xl"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              {sidebarOpen ? '✕' : '☰'}
-            </button>
+            {!hideSidebar && (
+              <button
+                className="md:hidden text-gray-600 text-xl"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+              >
+                {sidebarOpen ? '✕' : '☰'}
+              </button>
+            )}
             <h1 className="text-xl font-bold text-gray-800">{title}</h1>
             <Profile />
           </div>
