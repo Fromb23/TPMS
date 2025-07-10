@@ -11,7 +11,7 @@ import { useContext } from 'react';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { setUser } = useContext(UserContext);
+    const { setUser, setToken } = useContext(UserContext);
 
     const mutation = useMutation({
         mutationFn: login,
@@ -20,19 +20,24 @@ const Login = () => {
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
             setUser(user);
+            setToken(token);
 
-            if (user.role === 'ADMIN') {
-                navigate('/admin-dashboard');
-            } else if (user.role === 'LECTURER') {
-                navigate('/lecturer-dashboard');
-            } else if (user.role === 'STUDENT') {
-                console.log('User has agreed to terms:', user.hasAgreedTerms);
-                if (user?.hasAgreedTerms) {
-                    navigate('/student-dashboard');
-                } else {  
-                    navigate('/resources/guidelines');
+            console.log("user has seen welcome:", user?.student?.[0]?.hasSeenWelcome);
+            setTimeout(() => {
+                if (user.role === 'ADMIN') {
+                    navigate('/admin-dashboard');
+                } else if (user.role === 'LECTURER') {
+                    window.location.href = '/lecturer-dashboard';
+                } else if (user.role === 'STUDENT') {
+                    if (!user?.hasAgreedTerms) {
+                        navigate('/resources/guidelines');
+                    } else if (!user?.student?.[0]?.hasSeenWelcome) {
+                        navigate('/tp/welcome');
+                    } else {
+                        navigate('/student-dashboard');
+                    }
                 }
-            }
+            }, 300);
         },
         // onError: (error) => {
         //     console.error('Login error:', error);
@@ -55,10 +60,10 @@ const Login = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#05011c] to-[#1a1a2e]">
             <div className="bg-white/10 backdrop-blur-md rounded-xl p-8 w-full max-w-md mx-4">
-            <Helmet>
-                <title>Login - TPMS</title>
-                <meta name="description" content="Login to the TPMS system" />
-            </Helmet>
+                <Helmet>
+                    <title>Login - TPMS</title>
+                    <meta name="description" content="Login to the TPMS system" />
+                </Helmet>
                 <h1 className="text-3xl font-bold text-white mb-6 text-center">Welcome Back</h1>
                 {mutation.error && (
                     <div className="bg-red-500 text-white p-4 rounded-lg mb-4">
