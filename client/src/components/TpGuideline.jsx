@@ -3,9 +3,11 @@ import { Helmet } from 'react-helmet-async';
 import { Layout } from '../components/Layout';
 import { useUser } from '../context/userContext';
 import { useMutation } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/api';
 
 const TpGuideline = () => {
+  const navigate = useNavigate();
   const { user } = useUser();
   const [agreed, setAgreed] = useState(false);
   const [expandedRule, setExpandedRule] = useState(null);
@@ -36,9 +38,11 @@ const TpGuideline = () => {
       }
     },
     onSuccess: (data) => {
-      localStorage.setItem('user', JSON.stringify({ ...user, hasAgreedTerms: true }));
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const updatedUser = { ...storedUser, hasAgreedTerms: true };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
       alert('Thank you for confirming your agreement to the guidelines!');
-      window.location.href = '/student-dashboard';
+      navigate('/student-dashboard');
     },
     onError: (error) => {
       alert('Error confirming agreement: ' + error.message);

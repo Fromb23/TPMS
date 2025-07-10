@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Homepage from './pages/Homepage';
 import Login from './pages/Login';
@@ -15,6 +16,25 @@ import { Outlet } from 'react-router-dom';
 import StudentProfileWrapper from './components/StudentProfileWrapper';
 
 function App() {
+
+  useEffect(() => {
+  const saveScrollPosition = () => {
+    sessionStorage.setItem('scrollY', window.scrollY);
+  };
+
+  const restoreScrollPosition = () => {
+    const scrollY = sessionStorage.getItem('scrollY');
+    if (scrollY !== null) {
+      window.scrollTo(0, parseInt(scrollY, 10));
+    }
+  };
+
+  window.addEventListener('beforeunload', saveScrollPosition);
+  restoreScrollPosition();
+
+  return () => window.removeEventListener('beforeunload', saveScrollPosition);
+}, []);
+
   return (
     <Router>
       <Routes>

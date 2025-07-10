@@ -5,10 +5,13 @@ import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { FaEnvelope, FaLock, FaArrowRight } from 'react-icons/fa';
 import { login } from '../services/authServices';
+import { UserContext } from '../context/userContext';
+import { useContext } from 'react';
 
 
 const Login = () => {
     const navigate = useNavigate();
+    const { setUser } = useContext(UserContext);
 
     const mutation = useMutation({
         mutationFn: login,
@@ -16,6 +19,7 @@ const Login = () => {
             const { token, user } = data;
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
+            setUser(user);
 
             if (user.role === 'ADMIN') {
                 navigate('/admin-dashboard');

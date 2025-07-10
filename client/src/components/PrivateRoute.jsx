@@ -9,9 +9,6 @@ const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const currentPath = window.location.pathname;
 
   if (isAuthenticated && user.role === "STUDENT" && !user.hasAgreedTerms && currentPath !== "/resources/guidelines") {
-    console.log("User has not agreed to terms, redirecting to guidelines");
-    console.log("Current path:", currentPath);
-    console.log("Has agreed terms:", user.hasAgreedTerms);
     return <Navigate to="/resources/guidelines" replace />;
   }
 
