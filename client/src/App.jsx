@@ -14,6 +14,7 @@ import TpGuideline from './components/TpGuideline';
 
 import { Outlet } from 'react-router-dom';
 import StudentProfileWrapper from './components/StudentProfileWrapper';
+import TpWelcome from './components/TpWelcome';
 
 function App() {
 
@@ -83,6 +84,12 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route path="tp/welcome" element={
+          <PrivateRoute allowedRoles={['STUDENT']}>
+            <TpWelcome />
+          </PrivateRoute>
+        } />
+        
 
         <Route path="/unauthorized" element={<NotAuthorized />} />
       </Routes>
