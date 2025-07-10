@@ -13,6 +13,7 @@ model User {
   fullName   String
   email      String     @unique
   role       Role       @default(STUDENT)
+  hasAgreedTerms Boolean    @default(false)
   password   String
   student    Student[]
   lecturer   Lecturer[]
