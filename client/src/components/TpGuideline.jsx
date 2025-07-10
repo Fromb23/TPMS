@@ -42,7 +42,7 @@ const TpGuideline = () => {
       const updatedUser = { ...storedUser, hasAgreedTerms: true };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       alert('Thank you for confirming your agreement to the guidelines!');
-      navigate('/student-dashboard');
+      navigate('/tp/welcome');
     },
     onError: (error) => {
       alert('Error confirming agreement: ' + error.message);
