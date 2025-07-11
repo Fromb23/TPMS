@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FiUpload, FiX, FiFile, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import DocumentFileInput from './DocumentFileInput';
 import { submitSchoolDocuments } from '../services/schoolServices';
@@ -9,8 +9,9 @@ import LessonPlanTemplate from './LessonPlanTemplate';
 import RecordOfWorkTemplate from './RecordOfWorkTemplate';
 import { submitRecordOfWork } from '../services/recordOfWorkServices';
 
-const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }) => {
-  console.log("DocumentUploadModal rendered with type:", type);
+const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, token, userId }) => {
+  const queryClient = useQueryClient();
+
   const [files, setFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
@@ -44,9 +45,6 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
     content: "",       // <-- added
   });
 
-  const user = localStorage.getItem("user");
-  const userId = user ? JSON.parse(user).id : null;
-
   const handleClose = useCallback(() => {
     setFiles([]);
     setIsUploading(false);
@@ -62,8 +60,9 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
 
 
   const mutation = useMutation({
-    mutationFn: (schoolDocumentData) => submitSchoolDocuments(schoolDocumentData),
+    mutationFn: submitSchoolDocuments,
     onSuccess: () => {
+      queryClient.invalidateQueries(['currentPhase', userId]);
       setUploadSuccess(true);
       onUpload(files);
       setTimeout(handleClose, 5000);
@@ -77,6 +76,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
   const lessonPlanMutation = useMutation({
     mutationFn: (lessonData) => submitLessonPlan(lessonData),
     onSuccess: (data) => {
+      queryClient.invalidateQueries(['currentPhase', userId]);
       setUploadSuccess(true);
       onUpload(files);
       setTimeout(handleClose, 5000);
@@ -140,7 +140,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus }
         subjectCombination: formData.subjectCombination,
       };
 
-      mutation.mutate({ userId, schoolData, files });
+      mutation.mutate({ userId, schoolData, files, token });
     }
     else if (type === 'lesson-plan') {
       const lessonData = {

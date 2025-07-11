@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Layout } from '../components/Layout';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useIsFetching } from '@tanstack/react-query';
 import { useUser } from '../context/userContext';
 import { StatusCard, QuickAction } from '../components/UI';
 import { DocumentSubmissionPhase } from '../components/DocumentSubmissionPhase';
@@ -25,7 +25,6 @@ import LoadingComponent from '../components/LoadingComponent';
 
 
 const StudentDashboard = () => {
-  const [delayPassed, setDelayPassed] = useState(false);
   // const [currentPhase, setCurrentPhase] = useState(null); // 'document-submission', 'pre-tp', 'active-tp', 'assessment', 'post-tp', 'completed'
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [rejectSessionId, setRejectSessionId] = useState(null);
@@ -35,13 +34,9 @@ const StudentDashboard = () => {
   const { user, setToken, token } = useUser();
   const userId = user?.id;
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDelayPassed(true);
-    }, 2000);
-
-    return () => clearTimeout(timeout);
-  }, []);
+  const isFetchingPhase = useIsFetching({
+    queryKey: ['currentPhase', userId],
+  });
 
   const { data: studentDetails, isLoading: loadingStudentDetails } = useQuery({
     queryKey: ['student-details', userId],
@@ -122,25 +117,22 @@ const StudentDashboard = () => {
     refetchOnWindowFocus: false,
     retry: false,
   });
-  
-  
-  const {data: currentPhase, isLoadingPhase, isError, error} = useQuery({
+
+  const { data: currentPhase, isLoadingPhase, isError, error } = useQuery({
     queryKey: ['currentPhase', userId],
     queryFn: () => getCurrentPhase(userId, token),
     enabled: !!userId && !!token,
     retry: 1,
   });
-  console.log("Token passed to getCurrentPhase:", token);
 
   // Simulate phase changes based on TP timeline
- useEffect(() => {
+  useEffect(() => {
     if (currentPhase) {
       console.log("Current Phase from query:", currentPhase);
     }
   }, [currentPhase]);
 
   const isLoadingAll =
-    !delayPassed ||
     loadingStudentDetails ||
     isFinalDocLoading ||
     isStatusLoading ||
@@ -150,18 +142,18 @@ const StudentDashboard = () => {
     isRecordOfWorkLoading;
 
   if (isLoadingAll) {
-    return <LoadingComponent />;
+    return <LoadingComponent message="Making your page ready please wait..." />;
   }
 
   // Handle document upload
   const handleUpload = (type) => {
     setUploadType(type);
     setShowUploadModal(true);
-  };  
+  };
 
   // Render different content based on current phase
   const renderPhaseContent = () => {
-    if (!currentPhase || isLoadingPhase) {
+    if (!currentPhase || isLoadingPhase || isFetchingPhase > 0) {
       return (
         <div className="text-center py-10">
           <p className="text-gray-600">Determining your TP phase...</p>
@@ -169,7 +161,7 @@ const StudentDashboard = () => {
         </div>
       );
     }
-          console.log("Current Phase before switch:", currentPhase);
+
     switch (currentPhase?.phase) {
       case 'document-submission': return <DocumentSubmissionPhase
         handleUpload={handleUpload}
@@ -395,6 +387,8 @@ const StudentDashboard = () => {
 
       {/* Document Upload Modal */}
       <DocumentUploadModal
+        token={token}
+        userId={userId}
         isOpen={showUploadModal}
         onClose={() => setShowUploadModal(false)}
         type={uploadType}

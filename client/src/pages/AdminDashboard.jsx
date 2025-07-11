@@ -13,10 +13,10 @@ import {
 import { fetchAllLecturers } from '../services/lecturerServices';
 import { fetchAllStudents } from '../services/studentServices';
 import { useUser } from '../context/userContext';
+import LoadingComponent from '../components/LoadingComponent';
 
 const AdminDashboard = () => {
-    const { user, setUser } = useUser();
-    const [selectedStudent, setSelectedStudent] = useState(null);
+    const { user, token } = useUser();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedDocument, setSelectedDocument] = useState(null);
@@ -27,7 +27,7 @@ const AdminDashboard = () => {
     // Enhanced data with admin-specific fields
     const { data: students, isLoading: studentsLoading } = useQuery({
         queryKey: ['students'],
-        queryFn: fetchAllStudents,
+        queryFn: () => fetchAllStudents(token),
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
     });
@@ -87,9 +87,6 @@ const AdminDashboard = () => {
         };
     }) || [];
 
-    console.log("All students data:", students);
-
-
     const { data: lecturers, isLoading: lecturersLoading } = useQuery({
         queryKey: ['lecturers'],
         queryFn: fetchAllLecturers,
@@ -115,9 +112,7 @@ const AdminDashboard = () => {
         navigate(`/${dashboardBase}/${student?.user?.id}/documents`);
 
     };
-    // const closeStudentProfile = () => {
-    //     setSelectedStudent(null);
-    // };
+
     const activeData = activeTab === 'students' ? enhancedStudentData : enhancedLecturerData;
 
     // Stats calculations
@@ -358,6 +353,10 @@ const AdminDashboard = () => {
         console.log(`Exporting ${activeTab} data`);
     };
 
+    const isLoadingAll = studentsLoading || lecturersLoading;
+    if (isLoadingAll) {
+        return <LoadingComponent message="Making AdminDashboard ready please wait..." />;
+    }
     return (
         <Layout
             title="Admin Dashboard"

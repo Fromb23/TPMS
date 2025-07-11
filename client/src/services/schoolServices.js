@@ -1,8 +1,7 @@
 import apiClient from '../api/api';
 
-export const submitSchoolDocuments = async ({ userId, schoolData, files }) => {
+export const submitSchoolDocuments = async ({ schoolData, files, token }) => {
   try {
-    const token = localStorage.getItem('token');
     if (!token) throw new Error("No token found");
 
     const formData = new FormData();

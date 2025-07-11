@@ -1,6 +1,16 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
-const LoadingComponent = ({ message = "Loading..." }) => {
+const LoadingComponent = ({ message = "Loading...", delay= 2000 }) => {
+  const [delayPassed, setDelayPassed] = useState(false);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDelayPassed(true);
+    }, delay);
+
+    return () => clearTimeout(timeout);
+  }, [delay]);
+
+  if (!delayPassed) return null;
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">

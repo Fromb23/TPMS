@@ -22,7 +22,6 @@ const Login = () => {
             setUser(user);
             setToken(token);
 
-            console.log("user has seen welcome:", user?.student?.[0]?.hasSeenWelcome);
             setTimeout(() => {
                 if (user.role === 'ADMIN') {
                     navigate('/admin-dashboard');

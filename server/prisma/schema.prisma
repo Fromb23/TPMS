@@ -59,7 +59,7 @@ model Lecturer {
   userId     String
   user       User   @relation(fields: [userId], references: [id])
 
-  coordinatedZone Zone? @relation("ZoneCoordinator") // one-to-one inverse
+  coordinatedZone Zone? @relation("ZoneCoordinator")
 
   lecturerZoneAssigned LecturerZoneAssigned[]
   lecturerZoneRequest  LecturerZoneRequest[]
@@ -151,6 +151,16 @@ model TpApplication {
   updatedAt  DateTime @updatedAt
 
   @@map("tp_applications")
+}
+
+model TpPeriod {
+  id        String   @id @default(uuid())
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tp_periods")
 }
 
 model RecordOfWork {
