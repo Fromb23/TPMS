@@ -4,8 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import { getStudentById } from '../services/studentServices';
 import { StudentProfile } from './StudentProfile';
 import DocumentViewer from './DocumentViewer';
+import { useUser } from '../context/userContext';
 
 const StudentProfileWrapper = () => {
+  const { user } = useUser();
   const { studentId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,8 +16,7 @@ const StudentProfileWrapper = () => {
     queryKey: ['student', studentId],
     queryFn: () => getStudentById(studentId),
   });
-  const user = JSON.parse(localStorage.getItem('user'));
-  const userRole = user?.role
+ const userRole = user?.role
 
   const handleClose = () => {
     const dashboardBase = user?.role === 'LECTURER' ? 'lecturer-dashboard' : 'admin-dashboard';
