@@ -13,6 +13,7 @@ import { fetchAllStudents } from '../services/studentServices';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../context/userContext';
 
 const LecturerDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,11 +22,12 @@ const LecturerDashboard = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
   const navigate = useNavigate();
+  const { user, token } = useUser();
 
   // Enhanced dummy data with attention-needed flags
   const { data: allStudents = [], error, isLoading } = useQuery({
     queryKey: ['students'],
-    queryFn: fetchAllStudents,
+    queryFn: () => fetchAllStudents(token),
     refetchOnWindowFocus: false,
   });
 
