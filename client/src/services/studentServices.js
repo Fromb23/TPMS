@@ -3,7 +3,8 @@ import apiClient from '../api/api';
 const token = localStorage.getItem('token');
 
 
-export const fetchAllStudents = async () => {
+export const fetchAllStudents = async (token) => {
+  
   try {
     const response = await apiClient.get('/students', {
       headers: {
