@@ -13,7 +13,7 @@ import lecturerRoutes from './routes/lecturer.routes.js';
 import studentRoutes from './routes/student.routes.js';
 import zoneRoutes from './routes/zone.routes.js';
 import supervisionRoutes from './routes/supervision.routes.js';
-// import userRoutes from './routes/user.routes.js';
+import tpPeriodRoutes from './routes/tpPeriod.routes.js';
 const app = express();
 const port = 3000;
 dotenv.config();
@@ -35,7 +35,7 @@ app.use('/api/lecturers', lecturerRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/zones', zoneRoutes);
 app.use ('/api/supervision', supervisionRoutes);
-// app.use('/api/users', userRoutes);
+app.use('/api/tp-period', tpPeriodRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
