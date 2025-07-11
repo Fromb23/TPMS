@@ -1,23 +1,10 @@
 import React from 'react';
 import { FiAlertCircle, FiCheckCircle, FiUpload } from 'react-icons/fi';
+import LoadingComponent from './LoadingComponent';
 
 export const DocumentSubmissionPhase = ({ documentStatus, isLoading, isError, error, handleUpload }) => {
   if (isLoading) {
-    return (
-      <div className="bg-gray-100 p-4 rounded-lg mb-6 flex items-start space-x-4">
-        <svg className="animate-spin h-6 w-6 text-gray-600 mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        <div>
-          <h3 className="font-semibold text-lg flex items-center mb-1">
-            <FiAlertCircle className="mr-2 text-gray-600" />
-            Loading Document Status...
-          </h3>
-          <p className="text-sm text-gray-600">Please wait while we fetch your document status.</p>
-        </div>
-      </div>
-    );
+    return <LoadingComponent message="Please wait while we fetch your document status..." />;
   }
 
   if (isError) {
