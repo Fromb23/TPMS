@@ -25,27 +25,27 @@ const TpTimeline = ({ currentPhase, documentStatus }) => {
     id: 3,
     name: 'Active TP',
     status:
-      currentPhase === 'active-tp' ? 'current' :
+      currentPhase?.phase === 'active-tp' ? 'current' :
       ['assessment', 'post-tp', 'completed'].includes(currentPhase) ? 'completed' : 'pending',
   },
   {
     id: 4,
     name: 'Assessments',
     status:
-      currentPhase === 'assessment' ? 'current' :
+      currentPhase?.phase === 'assessment' ? 'current' :
       ['post-tp', 'completed'].includes(currentPhase) ? 'completed' : 'pending',
   },
   {
     id: 5,
     name: 'Final Submission',
     status:
-      currentPhase === 'post-tp' ? 'current' :
-      currentPhase === 'completed' ? 'completed' : 'pending',
+      currentPhase?.phase === 'post-tp' ? 'current' :
+      currentPhase?.phase === 'completed' ? 'completed' : 'pending',
   },
   {
     id: 6,
     name: 'Completion',
-    status: currentPhase === 'completed' ? 'current' : 'pending',
+    status: currentPhase?.phase === 'completed' ? 'current' : 'pending',
   },
 ];
 
