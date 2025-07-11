@@ -13,6 +13,7 @@ model User {
   fullName   String
   email      String     @unique
   role       Role       @default(STUDENT)
+  hasAgreedTerms Boolean    @default(false)
   password   String
   student    Student[]
   lecturer   Lecturer[]
@@ -33,6 +34,7 @@ model Student {
   schoolId            String?
   subjectCombination  String?
   canSubmitFinalDocs  Boolean               @default(false)
+  hasSeenWelcome      Boolean               @default(false)
   supervisionCount    Int                   @default(0)
   school              School?               @relation(fields: [schoolId], references: [id])
   user                User                  @relation(fields: [userId], references: [id])

@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Homepage from './pages/Homepage';
 import Login from './pages/Login';
@@ -13,8 +14,28 @@ import TpGuideline from './components/TpGuideline';
 
 import { Outlet } from 'react-router-dom';
 import StudentProfileWrapper from './components/StudentProfileWrapper';
+import TpWelcome from './components/TpWelcome';
 
 function App() {
+
+  useEffect(() => {
+  const saveScrollPosition = () => {
+    sessionStorage.setItem('scrollY', window.scrollY);
+  };
+
+  const restoreScrollPosition = () => {
+    const scrollY = sessionStorage.getItem('scrollY');
+    if (scrollY !== null) {
+      window.scrollTo(0, parseInt(scrollY, 10));
+    }
+  };
+
+  window.addEventListener('beforeunload', saveScrollPosition);
+  restoreScrollPosition();
+
+  return () => window.removeEventListener('beforeunload', saveScrollPosition);
+}, []);
+
   return (
     <Router>
       <Routes>
@@ -63,6 +84,12 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route path="tp/welcome" element={
+          <PrivateRoute allowedRoles={['STUDENT']}>
+            <TpWelcome />
+          </PrivateRoute>
+        } />
+        
 
         <Route path="/unauthorized" element={<NotAuthorized />} />
       </Routes>

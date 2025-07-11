@@ -19,16 +19,38 @@ import {
   FiHome, FiMapPin, FiAward, FiUsers, FiFile
 } from 'react-icons/fi';
 import { fetchRecordOfWorkStatusToday } from '../services/recordOfWorkServices';
+import { getStudentById } from '../services/studentServices';
+import { getCurrentPhase } from '../services/tpPhaseService';
+import LoadingComponent from '../components/LoadingComponent';
+
 
 const StudentDashboard = () => {
-  const [currentPhase, setCurrentPhase] = useState(); // 'document-submission', 'pre-tp', 'active-tp', 'assessment', 'post-tp', 'completed'
+  const [delayPassed, setDelayPassed] = useState(false);
+  // const [currentPhase, setCurrentPhase] = useState(null); // 'document-submission', 'pre-tp', 'active-tp', 'assessment', 'post-tp', 'completed'
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [rejectSessionId, setRejectSessionId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [uploadType, setUploadType] = useState('');
   const [showSupervisionCard, setShowSupervisionCard] = useState(false);
-  const { user } = useUser();
+  const { user, setToken, token } = useUser();
   const userId = user?.id;
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDelayPassed(true);
+    }, 2000);
+
+    return () => clearTimeout(timeout);
+  }, []);
+
+  const { data: studentDetails, isLoading: loadingStudentDetails } = useQuery({
+    queryKey: ['student-details', userId],
+    queryFn: () => getStudentById(userId),
+    enabled: !!userId,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+  console.log("Student data fetched in student dashboard", studentDetails);
 
   const { data: finalDocumentStatus, isLoading: isFinalDocLoading, isError: isFinalDocError, error: finalDocError } = useQuery({
     queryKey: ['final-document-status', userId],
@@ -37,16 +59,14 @@ const StudentDashboard = () => {
     refetchOnWindowFocus: false,
     retry: false,
   });
-  console.log("Final Document Status:", finalDocumentStatus);
 
   const { data: documentStatus, isLoading: isStatusLoading, isError: isStatusError, error: statusError } = useQuery({
     queryKey: ['student-document-status', userId],
-    queryFn: () => getDocumentStatusByUserId(userId),
+    queryFn: () => getDocumentStatusByUserId(userId, token),
     enabled: !!userId,
     refetchOnWindowFocus: false,
     retry: false,
   });
-  console.log("Document Status in student dashboard:", documentStatus);
 
   const { data: studentSchoolData, isLoading: isSchoolLoading, isError: isSchoolError, error: schoolError } = useQuery({
     queryKey: ['student-school-info', userId],
@@ -80,8 +100,6 @@ const StudentDashboard = () => {
     retry: false,
   });
 
-  console.log("Supervisor Info:", supervisorInfo);
-
   const handleAcceptSupervision = async (supervisionId) => {
     // You can POST to /api/supervision/accept
     console.log(`Accepted supervision ID: ${supervisionId}`);
@@ -104,63 +122,55 @@ const StudentDashboard = () => {
     refetchOnWindowFocus: false,
     retry: false,
   });
+  
+  
+  const {data: currentPhase, isLoadingPhase, isError, error} = useQuery({
+    queryKey: ['currentPhase', userId],
+    queryFn: () => getCurrentPhase(userId, token),
+    enabled: !!userId && !!token,
+    retry: 1,
+  });
+  console.log("Token passed to getCurrentPhase:", token);
 
   // Simulate phase changes based on TP timeline
-useEffect(() => {
-  if (
-    finalDocumentStatus === undefined ||
-    documentStatus === undefined ||
-    studentSchoolData === undefined ||
-    supervisorInfo === undefined
-  ) {
-    // Don't evaluate yet – wait for all data
-    return;
-  }
-  const determinePhase = () => {
-    if (finalDocumentStatus?.status === 'APPROVED') {
-      return 'completed';
-    } else if (finalDocumentStatus?.status === 'REJECTED') {
-      return 'post-tp';
-    } else if (!documentStatus || documentStatus.status === 'REJECTED') {
-      return 'document-submission';
-    } else if (documentStatus.status === 'PENDING') {
-      return 'pre-tp';
-    } else if (
-      documentStatus.status === 'APPROVED' &&
-      studentSchoolData?.student?.supervisionCount >= 3 &&
-      studentSchoolData?.student?.canSubmitFinalDocs
-    ) {
-      return 'post-tp';
-    } else if (
-      documentStatus.status === 'APPROVED' &&
-      supervisorInfo.length > 0
-    ) {
-      return 'assessment';
-    } else if (documentStatus.status === 'APPROVED') {
-      return 'active-tp';
-    } else {
-      return 'error';
+ useEffect(() => {
+    if (currentPhase) {
+      console.log("Current Phase from query:", currentPhase);
     }
-  };
+  }, [currentPhase]);
 
-  setCurrentPhase(determinePhase());
-}, [
-  documentStatus,
-  supervisorInfo,
-  studentSchoolData,
-  finalDocumentStatus
-]);
+  const isLoadingAll =
+    !delayPassed ||
+    loadingStudentDetails ||
+    isFinalDocLoading ||
+    isStatusLoading ||
+    isSchoolLoading ||
+    isLessonStatusLoading ||
+    isSupervisorLoading ||
+    isRecordOfWorkLoading;
+
+  if (isLoadingAll) {
+    return <LoadingComponent />;
+  }
 
   // Handle document upload
   const handleUpload = (type) => {
     setUploadType(type);
     setShowUploadModal(true);
-  };
-
+  };  
 
   // Render different content based on current phase
   const renderPhaseContent = () => {
-    switch (currentPhase) {
+    if (!currentPhase || isLoadingPhase) {
+      return (
+        <div className="text-center py-10">
+          <p className="text-gray-600">Determining your TP phase...</p>
+          <div className="animate-spin mt-3 h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full mx-auto" />
+        </div>
+      );
+    }
+          console.log("Current Phase before switch:", currentPhase);
+    switch (currentPhase?.phase) {
       case 'document-submission': return <DocumentSubmissionPhase
         handleUpload={handleUpload}
         isError={isStatusError}
@@ -232,8 +242,9 @@ useEffect(() => {
         );
 
       default:
+        console.log("studentDetails.hasSeenWelcome:", studentDetails?.hasSeenWelcome);
         return (
-          <div className="bg-red-50 p-4 rounded-lg mb-6"> 
+          <div className="bg-red-50 p-4 rounded-lg mb-6">
             <h3 className="font-semibold text-lg flex items-center mb-2">
               <FiAlertCircle className="mr-2 text-red-600" />
               Error
@@ -261,6 +272,7 @@ useEffect(() => {
         <TpTimeline currentPhase={currentPhase} documentStatus={documentStatus} />
 
         {renderPhaseContent()}
+
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {documentStatus?.status === "APPROVED" && (

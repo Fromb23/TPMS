@@ -70,6 +70,9 @@ export const login = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { email },
+      include: {
+        student: true,
+      },
     });
 
     if (!user) {
@@ -135,6 +138,30 @@ export const resetPassword = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'An error occurred while resetting the password' });
+  }
+}
+
+// Confirm Has Agreed Terms
+export const confirmHasAgreedTerms = async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      console.error('User not found');
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { hasAgreedTerms: true },
+    });
+
+    res.status(200).json({ message: 'Terms agreed successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while confirming terms agreement' });
   }
 }
 

@@ -36,7 +36,7 @@ export const Profile = () => {
   const hasUnread = user?.notifications?.some((n) => !n.read);
 
   const getInitials = (fullName) => {
-    if (!fullName) return '';
+    if (!fullName) return 'U';
     return fullName
       .split(' ')
       .map((n) => n[0])
@@ -55,7 +55,7 @@ export const Profile = () => {
             <span className="sr-only">Open user menu</span>
 
             <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
-              {initials || "U"}
+              {initials}
             </div>
           </button>
           <div className="ml-3">

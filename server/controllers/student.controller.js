@@ -108,3 +108,72 @@ export const fetchStudentById = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const confirmStudentWelcome = async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      console.log("user not found");
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.role !== 'STUDENT') {
+      return res.status(403).json({ error: 'Access denied: User is not a student' });
+    }
+
+    const student = await prisma.student.findFirst({
+      where: { userId: user.id },
+    });
+    
+
+    if (!student) {
+      return res.status(404).json({ error: 'Student profile not found' });
+    }
+
+    await prisma.student.update({
+      where: { id: student.id },
+      data: { hasSeenWelcome: true },
+    });
+    
+
+    return res.status(200).json({ message: 'Welcome confirmed successfully' });
+  } catch (error) {
+    console.error('Error confirming student welcome:', error);
+    return res.status(500).json({ error: 'Server error confirming welcome' });
+  }
+};
+
+export const getStudentDetailsById = async (userId) => {
+  console.log("Fetching student details for userId:", userId);
+  const student = await prisma.student.findFirst({
+    where: { userId },
+    include: {
+      documents: {
+        orderBy: { createdAt: 'desc' },
+      },
+      finalDocument: {
+        orderBy: { createdAt: 'desc' },
+      },
+      supervisionSchedule: true,
+    },
+  });
+
+  if (!student) throw new Error("Student not found");
+
+  const mostRecentDoc = student.documents?.[0];
+  const finalDoc = student.finalDocument?.[0];
+
+  return {
+    hasSeenWelcome: student.hasSeenWelcome,
+    documentStatus: mostRecentDoc?.status?.toUpperCase(),
+    finalDocumentStatus: finalDoc?.status?.toUpperCase(),
+    supervisionCount: student.supervisionSchedule?.length || 0,
+    hasSupervisorAssigned: student.supervisionSchedule?.length > 0,
+    canSubmitFinalDocs: student.canSubmitFinalDocs ?? false,
+  };
+};
