@@ -4,6 +4,10 @@ const token = localStorage.getItem('token');
 
 
 export const fetchAllStudents = async (token) => {
+  if (!token) {
+    throw new Error("Authentication token is required");
+  }
+  console.log("Fetching all students with token:", token);
   
   try {
     const response = await apiClient.get('/students', {
