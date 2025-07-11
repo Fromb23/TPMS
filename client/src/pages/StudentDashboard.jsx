@@ -25,7 +25,6 @@ import LoadingComponent from '../components/LoadingComponent';
 
 
 const StudentDashboard = () => {
-  const [delayPassed, setDelayPassed] = useState(false);
   // const [currentPhase, setCurrentPhase] = useState(null); // 'document-submission', 'pre-tp', 'active-tp', 'assessment', 'post-tp', 'completed'
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [rejectSessionId, setRejectSessionId] = useState(null);
@@ -34,14 +33,6 @@ const StudentDashboard = () => {
   const [showSupervisionCard, setShowSupervisionCard] = useState(false);
   const { user, setToken, token } = useUser();
   const userId = user?.id;
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDelayPassed(true);
-    }, 2000);
-
-    return () => clearTimeout(timeout);
-  }, []);
 
   const isFetchingPhase = useIsFetching({
     queryKey: ['currentPhase', userId],
@@ -142,7 +133,6 @@ const StudentDashboard = () => {
   }, [currentPhase]);
 
   const isLoadingAll =
-    !delayPassed ||
     loadingStudentDetails ||
     isFinalDocLoading ||
     isStatusLoading ||
@@ -152,7 +142,7 @@ const StudentDashboard = () => {
     isRecordOfWorkLoading;
 
   if (isLoadingAll) {
-    return <LoadingComponent />;
+    return <LoadingComponent message="Making your page ready please wait..." />;
   }
 
   // Handle document upload
