@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -10,7 +9,6 @@ import { useContext } from 'react';
 
 
 const Login = () => {
-    const navigate = useNavigate();
     const { setUser, setToken } = useContext(UserContext);
 
     const mutation = useMutation({
@@ -24,16 +22,16 @@ const Login = () => {
 
             setTimeout(() => {
                 if (user.role === 'ADMIN') {
-                    navigate('/admin-dashboard');
+                    window.location.href = '/admin-dashboard';
                 } else if (user.role === 'LECTURER') {
                     window.location.href = '/lecturer-dashboard';
                 } else if (user.role === 'STUDENT') {
                     if (!user?.hasAgreedTerms) {
-                        navigate('/resources/guidelines');
+                        window.location.href = '/resources/guidelines';
                     } else if (!user?.student?.[0]?.hasSeenWelcome) {
-                        navigate('/tp/welcome');
+                        window.location.href = '/tp/welcome';
                     } else {
-                        navigate('/student-dashboard');
+                        window.location.href ='/student-dashboard';
                     }
                 }
             }, 300);
