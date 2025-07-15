@@ -10,30 +10,37 @@ const TpTimeline = ({ currentPhase, documentStatus }) => {
     id: 1,
     name: 'Document Submission',
     status:
-      !documentStatus ? 'pending' :
-      documentStatus.status === 'REJECTED' ? 'current' : 'completed',
+      currentPhase?.phase === 'document-submission' ? 'current' :
+      ['pre-tp', 'active-tp', 'assessment', 'post-tp', 'completed'].includes(currentPhase?.phase)
+        ? 'completed'
+        : 'pending',
   },
   {
     id: 2,
     name: 'Verification',
     status:
-      documentStatus?.status === 'PENDING' ? 'current' :
-      documentStatus?.status === 'REJECTED' ? 'pending' :
-      documentStatus?.status === 'APPROVED' ? 'completed' : 'pending',
+      currentPhase?.phase === 'pre-tp' ? 'current' :
+      ['active-tp', 'assessment', 'post-tp', 'completed'].includes(currentPhase?.phase)
+        ? 'completed'
+        : 'pending',
   },
   {
     id: 3,
     name: 'Active TP',
     status:
       currentPhase?.phase === 'active-tp' ? 'current' :
-      ['assessment', 'post-tp', 'completed'].includes(currentPhase) ? 'completed' : 'pending',
+      ['assessment', 'post-tp', 'completed'].includes(currentPhase?.phase)
+        ? 'completed'
+        : 'pending',
   },
   {
     id: 4,
     name: 'Assessments',
     status:
       currentPhase?.phase === 'assessment' ? 'current' :
-      ['post-tp', 'completed'].includes(currentPhase) ? 'completed' : 'pending',
+      ['post-tp', 'completed'].includes(currentPhase?.phase)
+        ? 'completed'
+        : 'pending',
   },
   {
     id: 5,
@@ -45,10 +52,10 @@ const TpTimeline = ({ currentPhase, documentStatus }) => {
   {
     id: 6,
     name: 'Completion',
-    status: currentPhase?.phase === 'completed' ? 'current' : 'pending',
+    status:
+      currentPhase?.phase === 'completed' ? 'current' : 'pending',
   },
 ];
-
   const currentStage = tpTimeline.find(stage => stage.status === 'current');
 
   return (
