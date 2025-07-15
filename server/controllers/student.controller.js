@@ -149,7 +149,6 @@ export const confirmStudentWelcome = async (req, res) => {
 };
 
 export const getStudentDetailsById = async (userId) => {
-  console.log("Fetching student details for userId:", userId);
   const student = await prisma.student.findFirst({
     where: { userId },
     include: {
@@ -175,5 +174,7 @@ export const getStudentDetailsById = async (userId) => {
     supervisionCount: student.supervisionSchedule?.length || 0,
     hasSupervisorAssigned: student.supervisionSchedule?.length > 0,
     canSubmitFinalDocs: student.canSubmitFinalDocs ?? false,
+    assessmentInProgress : student?.assessmentInProgress || false,
+    assessmentRequested : student?.assessmentRequested
   };
 };
