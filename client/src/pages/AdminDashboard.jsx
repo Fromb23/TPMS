@@ -324,19 +324,35 @@ const AdminDashboard = () => {
         }
     ];
 
-    const filteredData = activeData.filter(item => {
-        const matchesSearch = Object.values(item).some(
-            val => val.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredData = activeData?.filter(item => {
+        const searchTermLower = searchTerm?.toLowerCase();
+
+        // Only use defined values, convert all to strings safely
+        const searchableFields = [
+            item?.fullName,
+            item?.email,
+            item?.user?.username,
+            item?.user?.email,
+            item?.user?.fullName,
+            item?.documents?.tp,
+            item?.department,
+            item?.user?.role,
+        ].filter(Boolean); // removes undefined/null values
+
+        const matchesSearch = searchableFields.some(field =>
+            field.toString().toLowerCase().includes(searchTermLower)
         );
+
         const matchesStatus =
             statusFilter === 'all' ||
-            (statusFilter === 'blocked' && item.isBlocked) ||
-            (statusFilter === 'active' && !item.isBlocked) ||
-            (statusFilter === 'tp' && item.documents?.tp) ||
-            (statusFilter === 'verified' && item.user?.isVerified) ||
-            (statusFilter === 'complete' && item.documents && Object.values(item.documents).every(Boolean)) ||
-            (statusFilter === 'pending' && item.user?.isVerified === false) ||
-            (statusFilter === 'incomplete' && item.documents && !Object.values(item.documents).every(Boolean));
+            (statusFilter === 'blocked' && item?.isBlocked) ||
+            (statusFilter === 'active' && !item?.isBlocked) ||
+            (statusFilter === 'tp' && item?.documents?.tp) ||
+            (statusFilter === 'verified' && item?.user?.isVerified) ||
+            (statusFilter === 'complete' && item?.documents && Object.values(item.documents).every(Boolean)) ||
+            (statusFilter === 'pending' && item?.user?.isVerified === false) ||
+            (statusFilter === 'incomplete' && item?.documents && !Object.values(item.documents).every(Boolean));
+
         return matchesSearch && matchesStatus;
     });
 

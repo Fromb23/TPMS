@@ -33,6 +33,7 @@ const StudentDashboard = () => {
   const [showSupervisionCard, setShowSupervisionCard] = useState(false);
   const { user, setToken, token } = useUser();
   const userId = user?.id;
+  console.log("User IDready on first render in student dashboard:", userId);
 
   const isFetchingPhase = useIsFetching({
     queryKey: ['currentPhase', userId],
@@ -87,7 +88,7 @@ const StudentDashboard = () => {
   });
 
   // Fetch supervisor information
-  const { data: supervisorInfo, isLoading: isSupervisorLoading, isError: isSupervisorError, error: supervisorError } = useQuery({
+  const { data: supervisorInfo, isLoading: isSupervisorLoading, isError: isSupervisorError, error: supervisorError, refetch } = useQuery({
     queryKey: ['supervisor-info', userId],
     queryFn: () => fetchSupervisionSchedule(userId),
     enabled: !!userId,
@@ -124,6 +125,12 @@ const StudentDashboard = () => {
     enabled: !!userId && !!token,
     retry: 1,
   });
+
+  useEffect(() => {
+    if (userId) {
+      refetch();
+    }
+  }, [userId]);
 
   // Simulate phase changes based on TP timeline
   useEffect(() => {

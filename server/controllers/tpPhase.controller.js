@@ -11,7 +11,6 @@ export const getCurrentPhase = async (req, res) => {
   try {
     const student = await getStudentDetailsById(userId);
     const phase = determinePhase(student);
-    console.log("Current phase for user:", userId, "is", phase);
     res.status(200).json({ phase });
   } catch (error) {
     console.error("Error determining current phase:", error);

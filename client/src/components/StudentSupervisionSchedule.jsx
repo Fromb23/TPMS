@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   createSupervisionSchedule,
@@ -6,9 +6,9 @@ import {
   enableStudentFinalDocumentSubmission,
   fetchSupervisionSchedule,
 } from '../services/supervisionServices';
+import { useUser } from '../context/userContext';
 
 export const StudentSupervisionSchedule = ({ student, onClose }) => {
-  console.log("Rendering StudentSupervisionSchedule for student:", student);
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState([]);
@@ -16,20 +16,21 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const { user, token } = useUser();
 
   const studentId = student?.userId;
-  const user = JSON.parse(localStorage.getItem('user'));
+
   const lecturerId = user?.id || null;
   const queryClient = useQueryClient();
 
   const subjects = Array.isArray(student?.subjectCombination?.split(' '))
     ? student.subjectCombination.split(' ')
     : [];
-
-  const { data: supervision, isLoading } = useQuery({
+ 
+  const { data: supervision, isLoading, refetch } = useQuery({
     queryKey: ['supervision', studentId],
-    queryFn: () => fetchSupervisionSchedule(studentId),
-    enabled: !!studentId,
+    queryFn: () => fetchSupervisionSchedule(studentId, token),
+    enabled: !!studentId && !!token,
   });
 
   const handleEnableFinalDocs = (studentId) => {
@@ -57,6 +58,12 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
     },
     onError: () => setError('Failed to create supervision'),
   });
+
+  useEffect(() => {
+    if (studentId) {
+      refetch();
+    }
+  }, [studentId, refetch]);
 
   const deleteSupervision = useMutation({
     mutationFn: deleteSupervisionSchedule,

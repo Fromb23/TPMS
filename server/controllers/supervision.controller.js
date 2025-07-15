@@ -55,6 +55,13 @@ export const createSupervisionSchedule = async (req, res) => {
       },
     });
 
+    await prisma.student.update({
+      where : { id : student.id },
+      data : {
+        assessmentRequested: true,
+      },
+    });
+
     res.status(201).json(supervision);
   } catch (error) {
     console.error('Error creating supervision schedule:', error);
@@ -139,6 +146,7 @@ export const confirmStudentSupervision = async (req, res) => {
         where: { id: existing.studentId },
         data: {
           supervisionCount: { increment: 1 },
+          assessmentRequested: false,
         },
       }),
     ]);
@@ -152,11 +160,11 @@ export const confirmStudentSupervision = async (req, res) => {
 };
 
 export const enableStudentSubmitFinalDocument = async (req, res) => {
-  const { studentId } = req.body;
+  const { studentId } = req.params;
 
   try {
     const student = await prisma.student.findFirst({
-      where: { userId: studentId },
+      where: { id: studentId },
     });
 
     if (!student) {

@@ -186,13 +186,43 @@ const LecturerDashboard = () => {
     }
   ];
 
+  const getAllStringValues = (obj) => {
+    let values = [];
+
+    for (const key in obj) {
+      if (!obj.hasOwnProperty(key)) continue;
+      const val = obj[key];
+
+      if (val === null || val === undefined) continue;
+
+      if (typeof val === 'object' && !Array.isArray(val)) {
+        values = values.concat(getAllStringValues(val));
+      } else if (
+        typeof val === 'string' ||
+        typeof val === 'number' ||
+        typeof val === 'boolean'
+      ) {
+        values.push(val.toString().toLowerCase());
+      }
+    }
+
+    return values;
+  };
+
   const filteredData = enhancedStudentData.filter(student => {
-    const matchesSearch = Object.values(student).some(
-      val => val.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    const stringValues = getAllStringValues(student);
+    const matchesSearch = stringValues.some(val =>
+      val.includes(searchTerm.toLowerCase())
     );
-    const matchesStatus = statusFilter === 'all' || student.status === statusFilter;
+
+    const matchesStatus =
+      statusFilter === 'all' || student.status?.toLowerCase() === statusFilter.toLowerCase();
+
     return matchesSearch && matchesStatus;
   });
+
+  console.log("Filtered Data:", filteredData);
+
 
   const handleViewDetails = (studentId) => {
     const student = enhancedStudentData.find(s => s.id === studentId);
@@ -235,7 +265,7 @@ const LecturerDashboard = () => {
       {selectedStudent && (
         <div className="space-y-6">
           < StudentSupervisionSchedule student={selectedStudent} onClose={() => setSelectedStudent(null)} />
-          </div>
+        </div>
       )}
       {/* Mobile Menu Toggle */}
       <button
