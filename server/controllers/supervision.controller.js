@@ -71,6 +71,7 @@ export const createSupervisionSchedule = async (req, res) => {
       where: { id: student.id },
       data: {
         assessmentRequested: true,
+        supervisionStatus: 'IN_PROGRESS',
       },
     });
 
@@ -156,7 +157,7 @@ export const confirmStudentSupervision = async (req, res) => {
       prisma.student.update({
         where: { id: existing.studentId },
         data: {
-          supervisionCount: { increment: 1 },
+          supervisionStatus: supervisionCount + 1 >= 3 ? 'SUPERVISED' : 'NONE',
           assessmentRequested: false,
         },
       }),
