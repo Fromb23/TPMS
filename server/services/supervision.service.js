@@ -9,6 +9,12 @@ const prisma = new PrismaClient();
  * 4. Prevent duplicate supervision (exact match of time/student/lecturer).
  */
 export async function checkSupervisionConflicts({ studentId, lecturerId, date, startTime, endTime }) {
+
+  const student = await prisma.student?.findUnique({ where: { id: studentId } });
+
+  if (student?.assessmentRequested) {
+    throw new Error('Learner aleady in assessment process, cannot schedule supervision.');
+  }
   const startOfDay = new Date(date);
   startOfDay.setUTCHours(0, 0, 0, 0);
 
@@ -55,7 +61,7 @@ export async function checkSupervisionConflicts({ studentId, lecturerId, date, s
       studentId,
       startDate: {
         gte: twoDaysAgo,
-        lt: startOfDay,
+        lte: endOfDay,
       },
     },
   });

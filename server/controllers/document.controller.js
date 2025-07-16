@@ -58,8 +58,10 @@ export const createDocument = async (req, res) => {
     }
 
     // Create school
-    const newSchool = await prisma.school.create({
-      data: {
+    const school = await prisma.school.upsert({
+      where: { name: schoolData.name },
+      update: {},
+      create: {
         name: schoolData.name,
         address: schoolData.address,
         contact: schoolData.contact,
@@ -75,12 +77,11 @@ export const createDocument = async (req, res) => {
     await prisma.student.update({
       where: { id: student.id },
       data: {
-        schoolId: newSchool.id,
+        schoolId: school.id,
         subjectCombination: schoolData.subjectCombination
       }
     });
 
-    // Save document records in DB
     for (const file of files) {
       await prisma.document.create({
         data: {
@@ -91,7 +92,7 @@ export const createDocument = async (req, res) => {
             connect: { id: student.id },
           },
           school: {
-            connect: { id: newSchool.id },
+            connect: { id: school.id },
           },
         },
       });
@@ -160,27 +161,44 @@ export const getFinalDocumentStatus = async (req, res) => {
 };
 
 export const updateDocumentStatus = async (req, res) => {
+  const { status } = req.body;
+  const documentId = req.params.documentId;
+
+  if (!documentId || !status) {
+    return res.status(400).json({ error: 'Document ID and status are required.' });
+  }
+
+  if (!['APPROVED', 'REJECTED'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid status value.' });
+  }
+
   try {
-    const { status } = req.body;
-    const documentId = req.params.documentId;
-    console.log("Updating document status:", { documentId, status });
+    const document = await prisma.document.findUnique({ where: { id: documentId } });
 
-    if (!documentId || !status) {
-      return res.status(400).json({ error: 'Document ID and status are required.' });
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found.' });
     }
 
-    if (!['APPROVED', 'REJECTED'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status value.' });
+    if (status === 'REJECTED') {
+      const filePath = path.join('public', document.url); // Adjust path as needed
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+
+      await prisma.document.delete({ where: { id: documentId } });
+
+      return res.status(200).json({ message: 'Document rejected and deleted.' });
     }
 
-    const updatedDocument = await prisma.document.update({
+
+    const updated = await prisma.document.update({
       where: { id: documentId },
       data: { status },
     });
 
-    return res.status(200).json(updatedDocument);
+    return res.status(200).json(updated);
   } catch (error) {
-    console.error("Error updating document status:", error);
+    console.error(error);
     return res.status(500).json({ error: 'Failed to update document status.' });
   }
 };

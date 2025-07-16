@@ -37,8 +37,10 @@ model Student {
   hasSeenWelcome           Boolean               @default(false)
   assessmentRequested      Boolean               @default(false)
   supervisionCount         Int                   @default(0)
+  supervisionStatus       SupervisionStatus     @default(NONE)
   school                   School?               @relation(fields: [schoolId], references: [id])
   user                     User                  @relation(fields: [userId], references: [id])
+  suggestedSchools School[] @relation("SuggestedSchool") 
   documents                Document[]
   lessonPlan               LessonPlan[]
   supervisionSchedule      SupervisionSchedule[]
@@ -124,9 +126,12 @@ model School {
   contact            String?
   county             String?
   subjectCombination String?
-  zoneId             String
+  zoneId             String?
+  approved         Boolean @default(false)
+  suggestedById String?
+  suggestedBy        Student? @relation("SuggestedSchool", fields: [suggestedById], references: [id])
 
-  zone          Zone            @relation(fields: [zoneId], references: [id])
+  zone          Zone?            @relation(fields: [zoneId], references: [id])
   students      Student[]
   documents     Document[]
   tpApplication TpApplication[]
@@ -342,4 +347,10 @@ enum DocumentType {
   LESSON_PLAN
   SUPERVISION_VISIT
   FINAL_DOCUMENT
+}
+
+enum SupervisionStatus {
+  NONE
+  IN_PROGRESS
+  SUPERVISED
 }

@@ -71,6 +71,7 @@ export const createSupervisionSchedule = async (req, res) => {
       where: { id: student.id },
       data: {
         assessmentRequested: true,
+        supervisionStatus: 'IN_PROGRESS',
       },
     });
 
@@ -147,20 +148,31 @@ export const confirmStudentSupervision = async (req, res) => {
       return res.status(400).json({ message: "Maximum number of supervisions reached" });
     }
 
+    const currentCount = student?.supervisionCount || 0;
+    const supervisionCount = currentCount + 1;
+    const newStatus = supervisionCount >= 3 ? 'SUPERVISED' : 'NONE';
+
     // Confirm this supervision + increment student's count
-    const [updatedSupervision, updatedStudent] = await prisma.$transaction([
+    const result = await prisma.$transaction([
       prisma.supervisionSchedule.update({
         where: { id: supervisionId },
         data: { isSupervised: true },
       }),
+      
       prisma.student.update({
         where: { id: existing.studentId },
         data: {
           supervisionCount: { increment: 1 },
+          supervisionStatus: newStatus,
           assessmentRequested: false,
         },
       }),
     ]);
+    if (!Array.isArray(result)) {
+      throw new Error("Transaction failed: result is not an array");
+    }
+
+    const [updatedSupervision, updatedStudent] = result;
 
     res.status(200).json({ updatedSupervision, updatedStudent });
 

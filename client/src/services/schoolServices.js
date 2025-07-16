@@ -1,5 +1,36 @@
 import apiClient from '../api/api';
 
+export const fetchSchools = async (token) => {
+  try {
+    const response = await apiClient.get("/schools", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch schools:", error.message || error);
+    throw error;
+  }
+};
+
+export const createSchool = async ({form, token}) => {
+  try {
+    if (!token) throw new Error("No token found");
+    const response = await apiClient.post('/schools', form, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to create school:", error.message || error);
+    throw error;
+  }
+};
+
 export const submitSchoolDocuments = async ({ schoolData, files, token }) => {
   try {
     if (!token) throw new Error("No token found");
