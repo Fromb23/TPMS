@@ -1,10 +1,10 @@
 import { PrismaClient } from "@prisma/client";
+import { checkSupervisionConflicts } from "../services/supervision.service.js";
 
 const prisma = new PrismaClient();
 
 export const createSupervisionSchedule = async (req, res) => {
   const sessions = req.body;
-  console.log('Received sessions:', sessions);
 
   const userId = req.user.id;
 
@@ -39,6 +39,19 @@ export const createSupervisionSchedule = async (req, res) => {
       endTime: new Date(`${session.date}T${session.endTime}`),
     }));
 
+    try {
+      await checkSupervisionConflicts({
+        studentId: student.id,
+        lecturerId: lecturer.id,
+        date,
+        startTime: subjectData[0].startTime,
+        endTime: subjectData[subjectData.length - 1].endTime,
+      });
+    } catch (conflictError) {
+      console.error('Conflict detected:', conflictError.message);
+      return res.status(400).json({ error: { message: conflictError.message } });
+    }
+
     const supervision = await prisma.supervisionSchedule.create({
       data: {
         lecturerId: lecturer.id,
@@ -56,8 +69,8 @@ export const createSupervisionSchedule = async (req, res) => {
     });
 
     await prisma.student.update({
-      where : { id : student.id },
-      data : {
+      where: { id: student.id },
+      data: {
         assessmentRequested: true,
       },
     });
