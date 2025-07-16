@@ -26,7 +26,7 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
   const subjects = Array.isArray(student?.subjectCombination?.split(' '))
     ? student.subjectCombination.split(' ')
     : [];
- 
+
   const { data: supervision, isLoading, refetch } = useQuery({
     queryKey: ['supervision', studentId],
     queryFn: () => fetchSupervisionSchedule(studentId, token),
@@ -34,7 +34,7 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
   });
 
   const handleEnableFinalDocs = (studentId) => {
-    enableFinalDocumentSubmission.mutate({studentId, status: true });
+    enableFinalDocumentSubmission.mutate({ studentId, status: true });
   };
   const enableFinalDocumentSubmission = useMutation({
     mutationFn: enableStudentFinalDocumentSubmission,
@@ -151,8 +151,8 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
             onClick={() => handleEnableFinalDocs(student.id)}
             disabled={student?.canSubmitFinalDocs}
             className={`w-full py-2 rounded mt-4 ${student?.canSubmitFinalDocs
-                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700 text-white'
+              ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              : 'bg-green-600 hover:bg-green-700 text-white'
               }`}
           >
             {student?.canSubmitFinalDocs
@@ -172,146 +172,163 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
             </button>
           </div>
         )}
+           { student?.supervisionStatus === 'IN_PROGRESS' && (
+            <div className="mt-4 p-4 border border-red-200 bg-red-50 rounded">
+              <p className="text-red-700 font-medium">
+                This student is currently undergoing supervision.
+              </p>
+              <p className="text-red-600 text-sm">
+                Please complete or delete the ongoing supervision before booking a new one.
+              </p>
+            </div>
+          )}
 
         {/* Form Area */}
-        {(supervision?.length < 1 || showForm) && (
-          <div className="space-y-3 border border-blue-200 rounded p-4 mt-3">
-            <h3 className="font-semibold text-blue-600">New Supervision</h3>
+        {(student?.supervisionStatus !== 'IN_PROGRESS') && (supervision?.length < 1 || showForm) && (
+       
+        <div className="space-y-3 border border-blue-200 rounded p-4 mt-3">
+          <h3 className="font-semibold text-blue-600">New Supervision</h3>
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            {success && <p className="text-green-600 text-sm">Supervision booked successfully!</p>}
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {success && <p className="text-green-600 text-sm">Supervision booked successfully!</p>}
 
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full border p-2 rounded"
-            />
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full border p-2 rounded"
+          />
 
-            <div>
-              <p className="text-sm font-medium mb-1">Select up to 2 subjects</p>
-              <div className="flex flex-wrap gap-2">
-                {subjects.map((s, i) => (
-                  <button
-                    key={i}
-                    onClick={() => toggleSubject(s)}
-                    className={`px-3 py-1 rounded-full border transition text-sm ${selectedSubjects.includes(s)
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
-                      }`}
-                  >
-                    {s}
-                  </button>
-                ))}
+          <div>
+            <p className="text-sm font-medium mb-1">Select up to 2 subjects</p>
+            <div className="flex flex-wrap gap-2">
+              {subjects.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => toggleSubject(s)}
+                  className={`px-3 py-1 rounded-full border transition text-sm ${selectedSubjects.includes(s)
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                    }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {selectedSubjects.map((s, i) => (
+            <div key={i} className="border p-3 rounded space-y-2">
+              <p className="text-sm font-semibold">{s} Timing</p>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="time"
+                  value={subjectTimes[s]?.start || ''}
+                  onChange={(e) => handleTimeChange(s, 'start', e.target.value)}
+                  className="border p-2 rounded"
+                />
+                <input
+                  type="time"
+                  value={subjectTimes[s]?.end || ''}
+                  onChange={(e) => handleTimeChange(s, 'end', e.target.value)}
+                  className="border p-2 rounded"
+                />
               </div>
             </div>
+          ))}
 
-            {selectedSubjects.map((s, i) => (
-              <div key={i} className="border p-3 rounded space-y-2">
-                <p className="text-sm font-semibold">{s} Timing</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="time"
-                    value={subjectTimes[s]?.start || ''}
-                    onChange={(e) => handleTimeChange(s, 'start', e.target.value)}
-                    className="border p-2 rounded"
-                  />
-                  <input
-                    type="time"
-                    value={subjectTimes[s]?.end || ''}
-                    onChange={(e) => handleTimeChange(s, 'end', e.target.value)}
-                    className="border p-2 rounded"
-                  />
-                </div>
-              </div>
-            ))}
+          <textarea
+            placeholder="Notes (optional)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="w-full border p-2 rounded"
+            rows={3}
+          />
 
-            <textarea
-              placeholder="Notes (optional)"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full border p-2 rounded"
-              rows={3}
-            />
-
-            <button
-              onClick={handleCreate}
-              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
-              disabled={subjects.length === 0}
-            >
-              Create Supervision
-            </button>
-          </div>
+          <button
+            onClick={handleCreate}
+            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+            disabled={subjects.length === 0}
+          >
+            Create Supervision
+          </button>
+        </div>
         )}
 
         {/* Existing Supervisions */}
         {isLoading ? (
           <p className="text-center text-gray-500">Loading...</p>
         ) : (
-          supervision?.map((entry) => (
-            <div
-              key={entry.id}
-              className="border p-4 rounded shadow space-y-2 text-sm mt-4 bg-gray-50"
-            >
-              <p>
-                <b>Student:</b> {student?.user?.fullName || 'Unknown Student'}
-              </p>
-              <p>
-                <b>Date:</b> {new Date(entry.startDate).toLocaleDateString()}
-              </p>
-              <p>
-                <b>Time:</b>{' '}
-                {`${new Date(entry.startDate).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })} - ${new Date(entry.endDate).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}`}
-              </p>
-              <p>
-                <b>Subjects:</b>
-              </p>
-              <ul className="pl-4 list-disc">
-                {entry.subjects.map((subj) => (
-                  <li key={subj.id}>
-                    {subj.name} (
-                    {new Date(subj.startTime).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}{' '}
-                    -{' '}
-                    {new Date(subj.endTime).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                    )
-                  </li>
-                ))}
-              </ul>
-
-              {entry.isSupervised ? (
-                <p className="text-green-700 text-sm font-semibold">
-                  Supervision Completed ✅
+          <>
+            {supervision?.map((entry) => (
+              <div
+                key={entry.id}
+                className="border p-4 rounded shadow space-y-2 text-sm mt-4 bg-gray-50"
+              >
+                <p>
+                  <b>Student:</b> {student?.user?.fullName || 'Unknown Student'}
                 </p>
-              ) : (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => deleteSupervision.mutate(entry.id)}
-                    className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => handleEdit(entry)}
-                    className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                  >
-                    Edit
-                  </button>
-                </div>
-              )}
-            </div>
-          ))
+                <p>
+                  <b>Date:</b> {new Date(entry.startDate).toLocaleDateString()}
+                </p>
+                <p>
+                  <b>Time:</b>{' '}
+                  {`${new Date(entry.startDate).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })} - ${new Date(entry.endDate).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}`}
+                </p>
+
+                <p><b>Subjects:</b></p>
+                <ul className="pl-4 list-disc">
+                  {entry.subjects.map((subj) => (
+                    <li key={subj.id}>
+                      {subj.name} (
+                      {new Date(subj.startTime).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}{' '}
+                      -{' '}
+                      {new Date(subj.endTime).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                      )
+                    </li>
+                  ))}
+                </ul>
+
+                {entry.isSupervised ? (
+                  <div className="text-green-700 text-sm font-semibold">
+                    <p>Supervision Completed ✅</p>
+                    <p className="text-gray-700 font-normal">
+                      By: Dr <span className="font-medium">
+                        {entry.lecturer?.user?.fullName || 'Lecturer Unknown'}
+                      </span>
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => deleteSupervision.mutate(entry.id)}
+                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleEdit(entry)}
+                      className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </>
         )}
       </div>
     </div>
