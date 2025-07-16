@@ -6,6 +6,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import LecturerDashboard from './pages/LecturerDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import RegisterSchools from './components/RegisterSchools';
 import PrivateRoute from './components/PrivateRoute';
 import TpPeriod from './components/TpPeriod';
 import ZoneDashboard from './pages/Zone';
@@ -47,6 +48,12 @@ function App() {
           <Route index element={<AdminDashboard />} />
           <Route path=":studentId/*" element={<StudentProfileWrapper />} />
         </Route>
+
+        <Route path="/admin/schools" element={
+          <PrivateRoute allowedRoles={['ADMIN']}>
+            <RegisterSchools />
+          </PrivateRoute>
+        } />
 
         <Route
           path="/admin/zones"
