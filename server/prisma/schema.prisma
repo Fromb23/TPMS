@@ -37,6 +37,7 @@ model Student {
   hasSeenWelcome           Boolean               @default(false)
   assessmentRequested      Boolean               @default(false)
   supervisionCount         Int                   @default(0)
+  supervisionStatus       SupervisionStatus     @default(NONE)
   school                   School?               @relation(fields: [schoolId], references: [id])
   user                     User                  @relation(fields: [userId], references: [id])
   documents                Document[]
@@ -342,4 +343,10 @@ enum DocumentType {
   LESSON_PLAN
   SUPERVISION_VISIT
   FINAL_DOCUMENT
+}
+
+enum SupervisionStatus {
+  NONE
+  IN_PROGRESS
+  SUPERVISED
 }

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `students` ADD COLUMN `supervisionStatus` ENUM('NONE', 'IN_PROGRESS', 'SUPERVISED') NOT NULL DEFAULT 'NONE';
