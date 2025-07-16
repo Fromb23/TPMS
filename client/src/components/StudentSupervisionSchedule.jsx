@@ -56,7 +56,7 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
       setTimeout(() => setSuccess(false), 3000);
       setShowForm(false);
     },
-    onError: () => setError('Failed to create supervision'),
+    onError: (error) => setError(error?.response?.data?.error?.message || 'Unknown error occurred'),
   });
 
   useEffect(() => {
