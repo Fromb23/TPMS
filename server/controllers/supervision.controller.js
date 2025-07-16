@@ -48,7 +48,6 @@ export const createSupervisionSchedule = async (req, res) => {
         endTime: subjectData[subjectData.length - 1].endTime,
       });
     } catch (conflictError) {
-      console.error('Conflict detected:', conflictError.message);
       return res.status(400).json({ error: { message: conflictError.message } });
     }
 
@@ -77,7 +76,6 @@ export const createSupervisionSchedule = async (req, res) => {
 
     res.status(201).json(supervision);
   } catch (error) {
-    console.error('Error creating supervision schedule:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
