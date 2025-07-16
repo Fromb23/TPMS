@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { FiUpload, FiX, FiFile, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import DocumentFileInput from './DocumentFileInput';
 import { submitSchoolDocuments } from '../services/schoolServices';
@@ -8,6 +8,7 @@ import { submitFinalTPDocument } from '../services/documentServices';
 import LessonPlanTemplate from './LessonPlanTemplate';
 import RecordOfWorkTemplate from './RecordOfWorkTemplate';
 import { submitRecordOfWork } from '../services/recordOfWorkServices';
+import { fetchSchools } from '../services/schoolServices';
 
 const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, token, userId }) => {
   const queryClient = useQueryClient();
@@ -16,6 +17,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isCustomSchool, setIsCustomSchool] = useState(false);
 
   const [formData, setFormData] = useState({
     // school-documents
@@ -73,6 +75,15 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
     },
   });
 
+  const { data: schools = [], isLoading, isError, error } = useQuery({
+    queryKey: ['schools'],
+    queryFn: () => fetchSchools(token),
+    onError: (err) => {
+      console.error("Failed to fetch schools:", err);
+      setUploadError("Error fetching schools.");
+    },
+  });
+
   const lessonPlanMutation = useMutation({
     mutationFn: (lessonData) => submitLessonPlan(lessonData),
     onSuccess: (data) => {
@@ -112,6 +123,32 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
       setIsUploading(false);
     },
   });
+
+  const handleSchoolSelect = (e) => {
+    const selectedName = e.target.value;
+    if (selectedName === "__custom__") {
+      setIsCustomSchool(true);
+      setFormData((prev) => ({
+        ...prev,
+        schoolName: "",
+        schoolAddress: "",
+        schoolContact: "",
+        schoolCounty: "",
+      }));
+    } else {
+      setIsCustomSchool(false);
+      const selected = schools.find((s) => s.name === selectedName);
+      if (selected) {
+        setFormData((prev) => ({
+          ...prev,
+          schoolName: selected.name,
+          schoolAddress: selected.address || "",
+          schoolContact: selected.contact || "",
+          schoolCounty: selected.county || "",
+        }));
+      }
+    }
+  };
 
   const handleSubmit = (e) => {
     console.log("Submitting document with formData:", formData);
@@ -278,14 +315,28 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
                   />
                 </div>
               )}
-              {type === 'school-documents' && (
+              {type === "school-documents" && (
                 <div className="space-y-4 mb-6">
+                  <select
+                    onChange={handleSchoolSelect}
+                    value={isCustomSchool ? "__custom__" : formData.schoolName || ""}
+                    className="w-full p-2 border rounded"
+                  >
+                    <option value="">-- Select School --</option>
+                    {schools.map((s) => (
+                      <option key={s.id} value={s.name}>{s.name}</option>
+                    ))}
+                    <option value="__custom__">Other (Create New School)</option>
+                  </select>
+
                   <input
                     type="text"
                     placeholder="School Name"
                     value={formData.schoolName}
                     onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
                     className="w-full p-2 border rounded"
+                    disabled={!isCustomSchool}
+                    required
                   />
                   <input
                     type="text"
@@ -293,6 +344,8 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
                     value={formData.schoolAddress}
                     onChange={(e) => setFormData({ ...formData, schoolAddress: e.target.value })}
                     className="w-full p-2 border rounded"
+                    disabled={!isCustomSchool}
+                    required
                   />
                   <input
                     type="text"
@@ -300,6 +353,8 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
                     value={formData.schoolContact}
                     onChange={(e) => setFormData({ ...formData, schoolContact: e.target.value })}
                     className="w-full p-2 border rounded"
+                    disabled={!isCustomSchool}
+                    required
                   />
                   <input
                     type="text"
@@ -307,6 +362,8 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
                     value={formData.schoolCounty}
                     onChange={(e) => setFormData({ ...formData, schoolCounty: e.target.value })}
                     className="w-full p-2 border rounded"
+                    disabled={!isCustomSchool}
+                    required
                   />
                   <input
                     type="text"
@@ -317,7 +374,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
                   />
                 </div>
               )}
-
+              
               {type === 'record-of-work' && (
                 <RecordOfWorkTemplate formData={formData} setFormData={setFormData} />
               )}
