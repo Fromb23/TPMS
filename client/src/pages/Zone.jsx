@@ -64,16 +64,15 @@ const ZonesDashboard = () => {
     if (allLecturers) {
       const names = allLecturers.map(l => (
         {
-          name: l?.user.fullName,
+          name: l?.user?.fullName,
           id: l.id,
-          email: l?.user.email,
+          email: l?.user?.email,
         }
       )
       );
       setLecturers(names);
     }
   }, [allLecturers]);
-  console.log("Lecturers:", lecturers);
 
   // Fetch all zones
   const { data: allZones, isLoading, isError } = useQuery({
