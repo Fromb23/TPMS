@@ -5,11 +5,11 @@ import { Table } from "./Table";
 import { Layout } from "./Layout";
 import { Breadcrumb } from '../components/BreadCrumb';
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createSchool, fetchSchools } from "../services/schoolServices";
+import { createSchool, fetchSchools, updateRegisteredSchool, deleteRegisteredSchool } from "../services/schoolServices";
 import { useUser } from "../context/userContext";
 
 export const RegisterSchools = () => {
-	const [form, setForm] = useState({ name: "", county: "", address: "", contact: "", zoneId: "" });
+	const [form, setForm] = useState({ name: "", county: "", constituency: "", address: "", contact: "", zoneId: "" });
 	// const [schools, setSchools] = useState([]);
 	const [zones, setZones] = useState([]);
 	const [message, setMessage] = useState("");
@@ -53,27 +53,31 @@ export const RegisterSchools = () => {
 		},
 	});
 
+	const editSchoolMutation = useMutation({
+		mutationFn: updateRegisteredSchool,
+		onSuccess: () => {
+			setMessage("School updated successfully!");
+			resetForm();
+		},
+		onError: (err) => {
+			console.error(err);
+			setMessage("Error updating school.");
+		},
+	});
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (isEditing) {
-			// still use manual axios for PUT
-			try {
-				await axios.put(`/api/schools/${form.id}`, form);
-				setMessage("School updated successfully!");
-				resetForm();
-				fetchSchools();
-			} catch (err) {
-				console.error(err);
-				setMessage("Error updating school.");
-			}
+			editSchoolMutation.mutate({ form, token });
+
 		} else {
 			createSchoolMutation.mutate({ form, token });
 		}
 	};
 
 	const resetForm = () => {
-		setForm({ name: "", county: "", address: "", contact: "", zoneId: "" });
+		setForm({ name: "", county: "", constituency: "", address: "", contact: "", zoneId: "" });
 		setIsEditing(false);
 	};
 
@@ -82,14 +86,23 @@ export const RegisterSchools = () => {
 		setIsEditing(true);
 	};
 
-	const handleDelete = async (id) => {
-		if (window.confirm("Delete this school?")) {
-			try {
-				await axios.delete(`/api/schools/${id}`);
-				fetchSchools();
-			} catch (err) {
-				console.error("Failed to delete school:", err);
-			}
+	const deleteSchoolMutation = useMutation({
+		mutationFn: deleteRegisteredSchool,
+		onSuccess: () => {
+			setMessage("School deleted successfully!");
+			fetchSchools();
+		},
+		onError: (err) => {
+			console.error(err);
+			setMessage("Error deleting school.");
+		},
+		enabled: !!token,
+	});
+
+	const handleDelete = (schoolId) => {
+		if (window.confirm("Are you sure you want to delete this school?")) {
+			deleteSchoolMutation.mutate({ schoolId, token });
+			resetForm();
 		}
 	};
 
@@ -100,6 +113,7 @@ export const RegisterSchools = () => {
 	const columns = [
 		{ Header: "School Name", accessor: "name" },
 		{ Header: "County", accessor: "county" },
+		{ Header: "Constituency", accessor: "constituency" },
 		{
 			Header: "Zone",
 			accessor: "zoneId",
@@ -175,6 +189,14 @@ export const RegisterSchools = () => {
 							placeholder="County"
 							value={form.county}
 							onChange={(e) => setForm({ ...form, county: e.target.value })}
+							required
+							className={inputField}
+						/>
+						<input
+							name="constituency"
+							placeholder="Constituency"
+							value={form.constituency}
+							onChange={(e) => setForm({ ...form, constituency: e.target.value })}
 							required
 							className={inputField}
 						/>
