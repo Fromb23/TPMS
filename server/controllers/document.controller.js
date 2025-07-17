@@ -12,7 +12,6 @@ export const createDocument = async (req, res) => {
     const userId = req.user.userId;
     const typeMap = ['TP_APPLICATION', 'TP_TIMETABLE', 'TP_ASSESSMENT', 'TP_RECORDS'];
 
-    // Parse schoolData (sent as JSON string via FormData)
     const schoolData = JSON.parse(req.body.schoolData);
     const files = req.files;
 
@@ -46,17 +45,6 @@ export const createDocument = async (req, res) => {
       return res.status(403).json({ error: 'Only students can upload documents.' });
     }
 
-    // Find or create zone
-    let zone = await prisma.zone.findUnique({
-      where: { name: schoolData.county }
-    });
-
-    if (!zone) {
-      zone = await prisma.zone.create({
-        data: { name: schoolData.county }
-      });
-    }
-
     // Create school
     const school = await prisma.school.upsert({
       where: { name: schoolData.name },
@@ -66,10 +54,8 @@ export const createDocument = async (req, res) => {
         address: schoolData.address,
         contact: schoolData.contact,
         county: schoolData.county,
+        constituency: schoolData.constituency,
         subjectCombination: schoolData.subjectCombination,
-        zone: {
-          connect: { id: zone.id }
-        }
       }
     });
 
@@ -173,30 +159,46 @@ export const updateDocumentStatus = async (req, res) => {
   }
 
   try {
-    const document = await prisma.document.findUnique({ where: { id: documentId } });
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
+      include: { school: true }
+    });
 
     if (!document) {
       return res.status(404).json({ error: 'Document not found.' });
     }
 
+    if (!document.school) {
+      return res.status(403).json({ error: 'This student is not linked to any school or the school has been deleted.' });
+    }
+
+    if (!document.school || document.school.approved === false) {
+      return res.status(403).json({ error: 'School must be approved before updating document status.' });
+    }
+
+    // handle REJECTED logic
     if (status === 'REJECTED') {
-      const filePath = path.join('public', document.url); // Adjust path as needed
+      const filePath = path.join('public', document.url);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
 
-      await prisma.document.delete({ where: { id: documentId } });
+      await prisma.document.update({
+        where: { id: documentId },
+        data: { status: 'REJECTED', url: null },
+      });
 
-      return res.status(200).json({ message: 'Document rejected and deleted.' });
+      return res.status(200).json({ message: 'Document rejected and file deleted.' });
     }
 
-
+    // handle APPROVED logic
     const updated = await prisma.document.update({
       where: { id: documentId },
-      data: { status },
+      data: { status: 'APPROVED' },
     });
 
     return res.status(200).json(updated);
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Failed to update document status.' });
