@@ -12,6 +12,7 @@ import { updateDocumentStatus } from '../services/documentServices';
 const DocumentViewer = ({ student, onClose, userRole }) => {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [approvalStatus, setApprovalStatus] = useState({});
+  const [mutationError, setMutationError] = useState(null);
 
 
   const documentMap = {
@@ -45,7 +46,12 @@ const DocumentViewer = ({ student, onClose, userRole }) => {
       window.location.reload();
     },
     onError: (error) => {
+      setMutationError(error.response?.data?.error || 'Failed to update document status.');
       console.error("Error updating document status:", error);
+
+      setTimeout(() => {
+        setMutationError(null);
+      }, 3000);
     }
   });
 
@@ -166,6 +172,12 @@ const DocumentViewer = ({ student, onClose, userRole }) => {
 
           {/* Document Preview */}
           <div className="w-full md:w-2/3 flex flex-col">
+            {mutationError && (
+              <div className="mb-4 p-3 text-sm text-red-700 bg-red-100 border border-red-400 rounded">
+                {mutationError}
+              </div>
+            )}
+
             {selectedDoc ? (
               (() => {
                 const fileName = selectedDoc.file || selectedDoc.fileUrl;
