@@ -93,3 +93,38 @@ export const fetchSchoolDataByStudentId = async (userId) => {
     throw error;
   }
 }
+
+export const updateRegisteredSchool = async ({ form, token }) => {
+  try {
+    if (!token) throw new Error("No token found");
+
+    const response = await apiClient.put(`/schools/${form.id}`, form, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update school:", error.message || error);
+    throw error;
+  }
+}
+
+export const deleteRegisteredSchool = async ({schoolId, token}) => {
+  try {
+    if (!token) throw new Error("No token found");
+
+    const response = await apiClient.delete(`/schools/${schoolId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to delete school:", error.message || error);
+    throw error;
+  }
+}
