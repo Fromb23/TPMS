@@ -26,6 +26,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
     schoolContact: "",
     schoolCounty: "",
     subjectCombination: "",
+    schoolConstituency: "",
 
     // lesson-plan
     subject: "",
@@ -59,7 +60,6 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
     setFiles(Array.from(e.target.files));
     setUploadError(null);
   };
-
 
   const mutation = useMutation({
     mutationFn: submitSchoolDocuments,
@@ -145,6 +145,8 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
           schoolAddress: selected.address || "",
           schoolContact: selected.contact || "",
           schoolCounty: selected.county || "",
+          schoolConstituency: selected.constituency || "",
+          subjectCombination: selected.subjectCombination || "",
         }));
       }
     }
@@ -174,6 +176,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
         address: formData.schoolAddress,
         contact: formData.schoolContact,
         county: formData.schoolCounty,
+        constituency: formData.schoolConstituency,
         subjectCombination: formData.subjectCombination,
       };
 
@@ -275,8 +278,8 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-90 overflow-auto">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center border-b p-4">
           <h3 className="text-lg font-semibold">{title}</h3>
           <button
@@ -374,7 +377,7 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
                   />
                 </div>
               )}
-              
+
               {type === 'record-of-work' && (
                 <RecordOfWorkTemplate formData={formData} setFormData={setFormData} />
               )}
