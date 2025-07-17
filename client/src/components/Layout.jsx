@@ -3,12 +3,12 @@ import { Sidebar } from './Sidebar';
 import { Profile } from './Profile';
 import { Breadcrumb } from './BreadCrumb';
 
-export const Layout = ({ children, title, role, breadcrumbs = [], hideSidebar=false }) => {
+export const Layout = ({ children, title, role, breadcrumbs = [], hideSidebar = false }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+
       {/* Mobile Sidebar */}
       {!hideSidebar && sidebarOpen && (
         <div
@@ -34,9 +34,8 @@ return (
 
       {/* Main Layout Area */}
       <div
-        className={`flex flex-col flex-1 w-full h-screen ${
-          hideSidebar ? '' : 'md:ml-64'
-        } overflow-hidden`}
+        className={`flex flex-col flex-1 w-full h-screen ${hideSidebar ? '' : 'md:ml-64'
+          } overflow-hidden`}
       >
         {/* Header */}
         <header className="fixed top-0 left-0 right-0 z-20 bg-white shadow-sm">
