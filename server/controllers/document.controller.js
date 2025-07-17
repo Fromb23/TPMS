@@ -185,7 +185,7 @@ export const updateDocumentStatus = async (req, res) => {
 
       await prisma.document.update({
         where: { id: documentId },
-        data: { status: 'REJECTED', url: null },
+        data: { status: 'REJECTED'},
       });
 
       return res.status(200).json({ message: 'Document rejected and file deleted.' });
