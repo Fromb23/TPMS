@@ -125,6 +125,7 @@ model School {
   address            String?
   contact            String?
   county             String?
+  constituency       String 
   subjectCombination String?
   zoneId             String?
   approved         Boolean @default(false)
