@@ -23,12 +23,13 @@ export const fetchAllSchools = async (req, res) => {
 };
 
 export const createSchool = async (req, res) => {
-  const { name, county, contact, address, zoneId } = req.body;
+  const { name, county, constituency, contact, address, zoneId } = req.body;
 
   try {
     const data = {
       name,
       county,
+      constituency,
       contact,
       address,
       approved: true,
@@ -81,3 +82,64 @@ export const getSchoolDataByStudentId = async (req, res) => {
   }
 };
 
+export const updateRegisteredSchool = async (req, res) => {
+  const { schoolId } = req.params;
+  const { name, county, constituency, contact, address, zoneId } = req.body;
+
+  try {
+    const student = await prisma.student.findFirst({
+      where: { schoolId },
+      select: { id: true },
+    });
+
+    const suggestedBy = student ? { connect: { id: student.id } } : undefined;
+
+    const updatedSchool = await prisma.school.update({
+      where: { id: schoolId },
+      data: {
+        name,
+        county,
+        constituency,
+        contact,
+        address,
+        zone: zoneId
+          ? { connect: { id: zoneId } }
+          : { disconnect: true },
+        suggestedBy: suggestedBy,
+        approved: true,
+      },
+    });
+
+    return res.status(200).json(updatedSchool);
+  } catch (error) {
+    console.error("Error updating school:", error);
+    return res.status(500).json({ error: "Server error while updating school" });
+  }
+};
+
+export const deleteRegisteredSchool = async (req, res) => {
+  const { schoolId } = req.params;
+
+  try {
+    // Step 1: Disconnect students from this school
+    await prisma.student.updateMany({
+      where: { schoolId },
+      data: { schoolId: null },
+    });
+
+    await prisma.document.updateMany({
+      where: { schoolId },
+      data: { status: 'REJECTED' },
+    });
+
+    // Step 3: Delete the school
+    await prisma.school.delete({
+      where: { id: schoolId },
+    });
+
+    return res.status(200).json({ message: "School deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting school:", error);
+    return res.status(500).json({ error: "Server error while deleting school" });
+  }
+};
