@@ -1,19 +1,20 @@
 import { PrismaClient } from "@prisma/client";
+import { assignSchoolsToZone } from "../services/zone.services.js";
 
 const prisma = new PrismaClient();
 
 export const createZone = async (req, res) => {
-    const { name, county, constituencies, coordinatorId, } = req.body;
+    const { name, county, constituencies, coordinatorId } = req.body;
     console.log("Creating zone with data:", req.body);
 
     try {
         const newZone = await prisma.zone.create({
-            data: {
-                name,
-                county,
-                constituencies,
-                coordinatorId,
-            },
+            data: { name, county, constituencies, coordinatorId },
+        });
+
+        // Run school assignment in the background
+        assignSchoolsToZone(newZone).catch((e) => {
+            console.error("School assignment error (not shown to user):", e);
         });
 
         res.status(201).json(newZone);
