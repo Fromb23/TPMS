@@ -107,6 +107,10 @@ const AdminDashboard = () => {
         // setSelectedStudent(student);
         navigate(`/admin-dashboard/${student?.user?.id}`);
     };
+    const handleLecturerClick = (lecturer) => {
+        navigate(`/admin-dashboard/lecturer/${lecturer?.user?.id}`);
+    };
+    
     const handleViewDocuments = (student) => {
         const dashboardBase = user?.role === 'LECTURER' ? 'lecturer-dashboard' : 'admin-dashboard';
         navigate(`/${dashboardBase}/${student?.user?.id}/documents`);
@@ -138,7 +142,6 @@ const AdminDashboard = () => {
             accessor: 'student',
             Cell: ({ row }) => {
                 const student = row.original;
-                console.log("student in column", student?.documents)
                 const initials = student?.user?.fullName
                     ?.split(' ')
                     .map(n => n[0])
@@ -267,16 +270,30 @@ const AdminDashboard = () => {
     const lecturerColumns = [
         {
             Header: 'Lecturer',
-            accessor: 'name',
-            Cell: ({ row }) => (
-                <div className="flex items-center">
-                    <FiUser className={`mr-2 ${row.original.isBlocked ? 'text-red-500' : 'text-blue-600'}`} />
-                    <div>
-                        <p className="font-medium">{row.original.user?.fullName}</p>
-                        <p className="text-xs text-gray-500">{row.original.department}</p>
-                    </div>
-                </div>
-            )
+            accessor: 'lecturer',
+            Cell: ({ row }) => {
+                const lecturer = row.original;
+                const initials = lecturer?.user?.fullName
+                    ?.split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .toUpperCase();
+
+                return (
+                    <button
+                        onClick={() => handleLecturerClick(lecturer)}
+                        className="flex items-center space-x-3 hover:bg-gray-100 px-2 py-2 rounded transition w-full text-left"
+                    >
+                        <div className="w-9 h-9 bg-green-100 text-green-600 rounded-full flex items-center justify-center font-semibold">
+                            {initials}
+                        </div>
+                        <div className="text-left">
+                            <p className="font-medium">{lecturer?.user?.fullName}</p>
+                            <p className="text-xs text-gray-500">{lecturer?.user?.id}</p>
+                        </div>
+                    </button>
+                );
+            }
         },
         {
             Header: 'Students',

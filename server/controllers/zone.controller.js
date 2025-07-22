@@ -5,7 +5,6 @@ const prisma = new PrismaClient();
 
 export const createZone = async (req, res) => {
     const { name, county, constituencies, coordinatorId } = req.body;
-    console.log("Creating zone with data:", req.body);
 
     try {
         const newZone = await prisma.zone.create({
@@ -51,6 +50,8 @@ export const getAllZones = async (req, res) => {
       county: zone.county,
       constituencies: zone.constituencies,
       coordinator: zone.coordinator?.user?.fullName || null,
+      email: zone.coordinator?.user?.email || null,
+      coordinatorId: zone.coordinatorId || null,
       createdAt: zone.createdAt,
       updatedAt: zone.updatedAt,
     }));

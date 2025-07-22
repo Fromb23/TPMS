@@ -16,6 +16,7 @@ import TpGuideline from './components/TpGuideline';
 import { Outlet } from 'react-router-dom';
 import StudentProfileWrapper from './components/StudentProfileWrapper';
 import TpWelcome from './components/TpWelcome';
+import LecturerProfile from './components/LecturerProfile';
 
 function App() {
 
@@ -47,6 +48,7 @@ function App() {
         <Route path="/admin-dashboard" element={<PrivateRoute allowedRoles={['ADMIN']} />}>
           <Route index element={<AdminDashboard />} />
           <Route path=":studentId/*" element={<StudentProfileWrapper />} />
+          <Route path="lecturer/:lecturerId/*" element={<LecturerProfile />} />
         </Route>
 
         <Route path="/admin/schools" element={

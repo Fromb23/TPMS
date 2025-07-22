@@ -37,6 +37,4 @@ app.use('/api/zones', zoneRoutes);
 app.use ('/api/supervision', supervisionRoutes);
 app.use('/api/tp-period', tpPeriodRoutes);
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
+app.listen(port, () =>  console.log(`Server is running on http://localhost:${port}`));

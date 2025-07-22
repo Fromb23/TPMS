@@ -1,7 +1,14 @@
-// src/components/Table.jsx
-import { useTable, useSortBy, usePagination } from 'react-table';
+import React, { useMemo } from 'react';
+import {
+  useTable,
+  useSortBy,
+  usePagination,
+  useRowSelect,
+} from 'react-table';
 
-export const Table = ({ columns, data}) => {
+export const Table = ({ columns, data, pageSize = 5 }) => {
+  const enhancedColumns = useMemo(() => columns, [columns]);
+
   const {
     getTableProps,
     getTableBodyProps,
@@ -13,31 +20,51 @@ export const Table = ({ columns, data}) => {
     pageOptions,
     nextPage,
     previousPage,
-    state: { pageIndex },
+    state: { pageIndex, selectedRowIds },
   } = useTable(
     {
-      columns,
+      columns: enhancedColumns,
       data,
-      initialState: { pageIndex: 0, pageSize: 5 },
+      initialState: { pageIndex: 0, pageSize },
     },
     useSortBy,
-    usePagination
+    usePagination,
+    useRowSelect,
+    (hooks) => {
+      hooks.visibleColumns.push((columns) => [
+        {
+          id: 'selection',
+          Header: ({ getToggleAllPageRowsSelectedProps }) => (
+            <input type="checkbox" {...getToggleAllPageRowsSelectedProps()} />
+          ),
+          Cell: ({ row }) => (
+            <input type="checkbox" {...row.getToggleRowSelectedProps()} />
+          ),
+        },
+        {
+          id: 'rowNumber',
+          Header: '#',
+          Cell: ({ row }) => row.index + 1 + pageIndex * pageSize,
+        },
+        ...columns,
+      ]);
+    }
   );
 
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow">
       <table {...getTableProps()} className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
-          {headerGroups.map(headerGroup => {
-            const { key, ...rest } = headerGroup.getHeaderGroupProps();
+          {headerGroups.map((headerGroup) => {
+            const { key: headerKey, ...rest } = headerGroup.getHeaderGroupProps();
             return (
-              <tr key={key} {...rest}>
-                {headerGroup.headers.map(column => {
+              <tr key={headerKey} {...rest}>
+                {headerGroup.headers.map((column) => {
                   const colProps = column.getHeaderProps(column.getSortByToggleProps());
-                  const { key, ...restProps } = colProps;
+                  const { key: colKey, ...restProps } = colProps;
                   return (
                     <th
-                      key={key}
+                      key={colKey}
                       {...restProps}
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
@@ -58,18 +85,19 @@ export const Table = ({ columns, data}) => {
         </thead>
 
         <tbody {...getTableBodyProps()} className="bg-white divide-y divide-gray-200">
-          {page.map(row => {
+          {page.map((row) => {
             prepareRow(row);
-            const rowProps = row.getRowProps();
-            const { key, ...rowRest } = rowProps;
-
+            const { key: rowKey, ...rowRest } = row.getRowProps();
             return (
-              <tr key={key} {...rowRest} className="hover:bg-gray-50">
-                {row.cells.map(cell => {
-                  const cellProps = cell.getCellProps();
-                  const { key, ...cellRest } = cellProps;
+              <tr key={rowKey} {...rowRest} className="hover:bg-gray-50">
+                {row.cells.map((cell) => {
+                  const { key: cellKey, ...cellRest } = cell.getCellProps();
                   return (
-                    <td key={key} {...cellRest} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td
+                      key={cellKey}
+                      {...cellRest}
+                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-700"
+                    >
                       {cell.render('Cell')}
                     </td>
                   );
@@ -88,20 +116,24 @@ export const Table = ({ columns, data}) => {
         </div>
         <div className="flex space-x-2">
           <button
-            onClick={() => previousPage()}
+            onClick={previousPage}
             disabled={!canPreviousPage}
-            className={`px-3 py-1 rounded-md ${canPreviousPage
-              ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-              : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+            className={`px-3 py-1 rounded-md ${
+              canPreviousPage
+                ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
           >
             Previous
           </button>
           <button
-            onClick={() => nextPage()}
+            onClick={nextPage}
             disabled={!canNextPage}
-            className={`px-3 py-1 rounded-md ${canNextPage
-              ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-              : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+            className={`px-3 py-1 rounded-md ${
+              canNextPage
+                ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
           >
             Next
           </button>
