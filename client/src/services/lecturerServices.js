@@ -15,3 +15,35 @@ export const fetchAllLecturers = async () => {
     throw error;
   }
 }
+
+export const getLecturerById = async (lecturerId) => {
+    const token = localStorage.getItem('token');
+  try {
+    const response = await apiClient.get(`/lecturers/${lecturerId}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching lecturer with ID ${lecturerId}:`, error);
+    throw error;
+  }
+}
+
+export const updateLecturerStatus = async (lecturerId, status) => {
+    const token = localStorage.getItem('token');
+  try {
+    const response = await apiClient.post(`/lecturers/${lecturerId}`, { status }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching lecturer with ID ${lecturerId}:`, error);
+    throw error;
+  }
+}
