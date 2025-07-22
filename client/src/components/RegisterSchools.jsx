@@ -260,7 +260,7 @@ export const RegisterSchools = () => {
 					</div>
 
 					{/* fallback to empty array */}
-					<Table columns={columns} data={Array.isArray(filteredSchools) ? filteredSchools : []} />
+					<Table columns={columns} data={Array.isArray(filteredSchools) ? filteredSchools : []} pageSize={50} />
 				</div>
 
 			</div>
