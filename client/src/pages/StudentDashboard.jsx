@@ -283,10 +283,10 @@ const StudentDashboard = () => {
               <div className="p-3 bg-gray-50 rounded-lg">
                 {studentSchoolData?.school ? (
                   <>
-                    <h3 className="font-medium mb-1">{studentSchoolData.school.name}</h3>
+                    <h3 className="font-medium mb-1">{studentSchoolData?.school?.name}</h3>
                     <p>{studentSchoolData.school.address}</p>
-                    <p className="text-sm text-gray-600 mt-1">{studentSchoolData.school.contact}</p>
-                    <p className="text-sm text-gray-500 mt-1">Zone: {studentSchoolData.school.zone.name}</p>
+                    <p className="text-sm text-gray-600 mt-1">{studentSchoolData?.school?.contact}</p>
+                    {/* <p className="text-sm text-gray-500 mt-1">Zone: {studentSchoolData?.school?.zone.name} || <p>No zone</p></p> */}
                   </>
                 ) : (
                   <p className="text-gray-500">No current school</p>
