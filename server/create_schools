@@ -1,0 +1,24 @@
+#!/bin/bash
+
+API_URL="http://localhost:3000/api/schools"
+TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyMTBhM2U3Mi02MDE3LTQxMjItODM4YS1lZmU5YjgyNWMyMGQiLCJpYXQiOjE3NTI4NDg5NzksImV4cCI6MTc1MjkzNTM3OX0.L_2uBRlbdunoyQYhk56Q7yhT-67EJxNM3Z2rg4cub1g"
+
+# Loop over each school in the JSON array
+jq -c '.[]' kajiado.json | while read -r school; do
+  schoolName=$(echo "$school" | jq -r '.schoolName')
+  
+  echo "Creating school: $schoolName"
+
+  response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API_URL" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $TOKEN" \
+    -d "$school")
+
+  if [[ "$response" == "201" ]]; then
+    echo "✅ Created: $schoolName"
+  elif [[ "$response" == "409" ]]; then
+    echo "⚠️ Already exists: $schoolName (Skipped)"
+  else
+    echo "❌ Failed: $schoolName (HTTP $response)"
+  fi
+done
