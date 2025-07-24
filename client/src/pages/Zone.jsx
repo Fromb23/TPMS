@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FiHome, FiPlus, FiEdit, FiTrash2, FiSearch, FiX } from 'react-icons/fi';
 import { Layout } from '../components/Layout';
+import Button from '../components/ui/Button';
 import { Table } from '../components/Table';
 import Modal from '../components/Modal';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -229,8 +230,23 @@ const ZonesDashboard = () => {
       Header: 'Actions',
       accessor: 'id',
       Cell: ({ value, row }) => <div className="flex space-x-2">
-        <button onClick={() => setupEdit(row.original)} className="text-blue-600 hover:text-blue-800 p-1" title="Edit"><FiEdit /></button>
-        <button onClick={() => handleZone('delete', row.original)} className="text-red-600 hover:text-red-800 p-1" title="Delete"><FiTrash2 /></button>
+        <Button
+          onClick={() => setupEdit(row.original)}
+          variant="ghost"
+          className="text-blue-600 hover:text-blue-800 p-1"
+          title="Edit"
+          fullWidth={false}
+          icon={<FiEdit />}
+        />
+
+        <Button
+          onClick={() => handleZone('delete', row.original)}
+          variant="ghost"
+          className="text-red-600 hover:text-red-800 p-1"
+          title="Delete"
+          fullWidth={false}
+          icon={<FiTrash2 />}
+        />
       </div>
     }
   ];
@@ -320,7 +336,16 @@ const ZonesDashboard = () => {
               {formData.constituencies.map((c, i) => (
                 <span key={i} className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center">
                   {c}
-                  <button type="button" onClick={() => handleConstituency('remove', c)} className="ml-1 text-gray-500 hover:text-red-500"><FiX size={14} /></button>
+                  <Button
+                    type="button"
+                    onClick={() => handleConstituency('remove', c)}
+                    variant="ghost"
+                    fullWidth={false}
+                    className="ml-1 text-gray-500 hover:text-red-500 p-1"
+                    icon={<FiX size={14} />}
+                    title="Remove"
+                  >
+                  </Button>
                 </span>
               ))}
             </div>
@@ -336,12 +361,12 @@ const ZonesDashboard = () => {
           </div>
 
           <div className="pt-4 flex justify-end space-x-3">
-            <button type="button" onClick={() => { setShowModal(false); resetForm(); }}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
-            <button type="button" onClick={() => handleZone(currentZone ? 'update' : 'create', currentZone)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <Button fullWidth={false} type="button" onClick={() => { setShowModal(false); resetForm(); }} variant="ghost">
+              Cancel
+            </Button>
+            <Button fullWidth={false} type="button" onClick={() => handleZone(currentZone ? 'update' : 'create', currentZone)}>
               {currentZone ? 'Save Changes' : 'Create Zone'}
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

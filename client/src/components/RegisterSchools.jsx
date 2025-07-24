@@ -7,6 +7,7 @@ import { Breadcrumb } from '../components/BreadCrumb';
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createSchool, fetchSchools, updateRegisteredSchool, deleteRegisteredSchool } from "../services/schoolServices";
 import { useUser } from "../context/userContext";
+import Button from "./ui/Button";
 
 export const RegisterSchools = () => {
 	const [form, setForm] = useState({ name: "", county: "", constituency: "", address: "", contact: "", zoneId: "" });
@@ -232,13 +233,15 @@ export const RegisterSchools = () => {
 						</select>
 
 						<div className="md:col-span-2 flex gap-2">
-							<button type="submit" className={btnPrimary}>
+							<Button
+							 type="submit" 
+							 variant="primary">
 								{isEditing ? "Update School" : "Register School"}
-							</button>
+							</Button>
 							{isEditing && (
-								<button type="button" onClick={resetForm} className={btnSecondary}>
+								<Button type="button" onClick={resetForm} variant="dangerOutline">
 									Cancel
-								</button>
+								</Button>
 							)}
 						</div>
 					</form>

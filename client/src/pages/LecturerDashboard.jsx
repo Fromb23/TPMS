@@ -9,7 +9,7 @@ import {
   FiFilter, FiSearch, FiDownload, FiPlus, FiAlertTriangle,
   FiClock, FiCheck, FiMessageSquare
 } from 'react-icons/fi';
-import { fetchAllStudents } from '../services/studentServices';
+import { fetchStudentsByZone } from '../services/studentServices';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -27,7 +27,7 @@ const LecturerDashboard = () => {
   // Enhanced dummy data with attention-needed flags
   const { data: allStudents = [], error, isLoading } = useQuery({
     queryKey: ['students'],
-    queryFn: () => fetchAllStudents(token),
+    queryFn: () => fetchStudentsByZone(token),
     refetchOnWindowFocus: false,
   });
 
