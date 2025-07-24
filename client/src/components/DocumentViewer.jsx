@@ -6,6 +6,7 @@ import {
   FiBook
 } from 'react-icons/fi';
 import { updateDocumentStatus } from '../services/documentServices';
+import Button from './ui/Button';
 
 
 
@@ -33,7 +34,16 @@ const DocumentViewer = ({ student, onClose, userRole }) => {
     type: doc.type
   }));
 
-  const filteredDocuments = documents.filter(doc => {
+  const seen = new Set();
+  const latestByType = [];
+
+  for (const doc of documents.sort((a, b) => new Date(b.date) - new Date(a.date))) {
+    if (!seen.has(doc.type)) {
+      seen.add(doc.type);
+      latestByType.push(doc);
+    }
+  }
+  const filteredDocuments = latestByType.filter(doc => {
     if (userRole === 'ADMIN') return true;
     if (userRole === 'LECTURER') return doc.type !== 'TP_APPLICATION';
     return false;
@@ -242,12 +252,12 @@ const DocumentViewer = ({ student, onClose, userRole }) => {
 
                         {selectedDoc.status !== "rejected" && (
                           <div>
-                            <button
+                            <Button
                               onClick={() => handleReject(selectedDoc.id)}
-                              className="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                              variant="dangerOutline"
                             >
                               Reject
-                            </button>
+                            </Button>
                           </div>
                         )}
                       </div>
