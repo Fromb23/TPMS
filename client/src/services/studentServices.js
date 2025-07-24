@@ -8,7 +8,7 @@ export const fetchAllStudents = async (token) => {
     throw new Error("Authentication token is required");
   }
   console.log("Fetching all students with token:", token);
-  
+
   try {
     const response = await apiClient.get('/students', {
       headers: {
@@ -31,7 +31,7 @@ export const fetchStudentByLecturerId = async (lecturerId) => {
     console.error('Error fetching students by lecturer ID:', error);
     throw error;
   }
-} 
+}
 
 export const updateStudentStatusById = async ({ id, ...status }) => {
   try {
@@ -60,6 +60,25 @@ export const getStudentById = async (studentId) => {
     return response.data;
   } catch (error) {
     console.error('Error fetching student by ID:', error);
+    throw error;
+  }
+}
+
+export const fetchStudentsByZone = async (token) => {
+  if (!token) {
+    throw new Error("Authentication token is required");
+  }
+
+  try {
+    const response = await apiClient.get('/students/zone', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching students by zone:', error);
     throw error;
   }
 }
