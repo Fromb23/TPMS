@@ -1,19 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Layout } from '../components/Layout';
-import { Table } from '../components/Table';
-import { StudentSupervisionSchedule } from '../components/StudentSupervisionSchedule';
-import { StudentProfile } from '../components/StudentProfile';
+import { Layout } from '@/components/Layout';
+import { Table } from '@/components/Table';
+import { StudentSupervisionSchedule } from '@/components/StudentSupervisionSchedule';
+import { StudentProfile } from '@/components/StudentProfile';
 import {
   FiHome, FiUser, FiBook, FiCalendar, FiFileText, FiEye,
   FiFilter, FiSearch, FiDownload, FiPlus, FiAlertTriangle,
   FiClock, FiCheck, FiMessageSquare
 } from 'react-icons/fi';
-import { fetchStudentsByZone } from '../services/studentServices';
+import { fetchStudentsByZone } from '@/services/studentServices';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../context/userContext';
+import { useUser } from '@/contexts/userContext';
+import { useError } from '@/contexts/ErrorContext';
+import Input from '@/components/ui/Input/Input';
+import Select from '@/components/ui/Select/Select';
+import Button from '@/components/ui/Button/Button';
 
 const LecturerDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,13 +27,21 @@ const LecturerDashboard = () => {
   const [showSchedule, setShowSchedule] = useState(false);
   const navigate = useNavigate();
   const { user, token } = useUser();
+  const { reportError } = useError();
 
   // Enhanced dummy data with attention-needed flags
-  const { data: allStudents = [], error, isLoading } = useQuery({
+  const { data: allStudents = [], isError, isLoading } = useQuery({
     queryKey: ['students'],
     queryFn: () => fetchStudentsByZone(token),
     refetchOnWindowFocus: false,
+    enabled: !!token,
+    retry: false,
   });
+  useEffect(() => {
+    if (isError) {
+      reportError('Failed to fetch students. Please try again later.');
+    }
+  }, [isError, reportError]);
 
   const enhancedStudentData = useMemo(() => {
     return allStudents.map(student => {
@@ -158,28 +170,36 @@ const LecturerDashboard = () => {
       accessor: 'id',
       Cell: ({ value, row }) => (
         <div className="flex space-x-2">
-          <button
+          <Button
             onClick={() => handleSendMessage(value)}
-            className="text-blue-600 hover:text-blue-800 p-1"
+            variant="ghost"
+            className="p-1 text-blue-600 hover:text-blue-800"
             title="Send message"
+            fullWidth={false}
           >
             <FiMessageSquare />
-          </button>
-          <button
+          </Button>
+
+          <Button
             onClick={() => handleViewDetails(value)}
-            className="text-blue-600 hover:text-blue-800 p-1"
+            variant="ghost"
+            className="p-1 text-blue-600 hover:text-blue-800"
             title="View details"
+            fullWidth={false}
           >
             <FiEye />
-          </button>
+          </Button>
+
           {row.original.needsAttention && (
-            <button
+            <Button
               onClick={() => handleMarkAsReviewed(value)}
-              className="text-green-600 hover:text-green-800 p-1"
+              variant="ghost"
+              className="p-1 text-green-600 hover:text-green-800"
               title="Mark as reviewed"
+              fullWidth={false}
             >
               <FiCheck />
-            </button>
+            </Button>
           )}
         </div>
       )
@@ -220,9 +240,6 @@ const LecturerDashboard = () => {
 
     return matchesSearch && matchesStatus;
   });
-
-  console.log("Filtered Data:", filteredData);
-
 
   const handleViewDetails = (studentId) => {
     const student = enhancedStudentData.find(s => s.id === studentId);
@@ -268,12 +285,14 @@ const LecturerDashboard = () => {
         </div>
       )}
       {/* Mobile Menu Toggle */}
-      <button
-        className="md:hidden fixed bottom-20 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg z-20"
+      <Button
         onClick={() => setShowMobileMenu(!showMobileMenu)}
-      >
-        {showMobileMenu ? <FiPlus className="transform rotate-45" /> : <FiPlus />}
-      </button>
+        fullWidth={false}
+        variant="primary"
+        className={`md:hidden fixed bottom-20 right-4 p-3 rounded-full shadow-lg z-20 ${showMobileMenu ? 'rotate-45 transition-transform' : ''
+          }`}
+        icon={<FiPlus className={showMobileMenu ? 'transform rotate-45' : ''} />}
+      />
 
       {/* Attention Needed Section */}
       {studentsNeedingAttention.length > 0 && (
@@ -343,43 +362,41 @@ const LecturerDashboard = () => {
         </div>
       </div>
 
-      {/* Dashboard Controls */}
+      {/* Search and Filter Section */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FiSearch className="text-gray-400" />
-          </div>
-          <input
+        <div className="flex-1">
+          <Input
             type="text"
             placeholder="Search students..."
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:ring-blue-500 focus:border-blue-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            icon={<FiSearch className="text-gray-400" />}
           />
         </div>
 
         <div className="flex items-center space-x-4">
-          <select
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+          <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Students</option>
-            <option value="Needs Attention">Needs Attention</option>
-            <option value="Pending">Pending</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
+            options={[
+              { label: "All Students", value: "all" },
+              { label: "Needs Attention", value: "Needs Attention" },
+              { label: "Pending", value: "Pending" },
+              { label: "Active", value: "Active" },
+              { label: "Inactive", value: "Inactive" },
+            ]}
+          />
 
-          <button
+          <Button
             onClick={handleDownloadReport}
-            className="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            <FiDownload className="mr-2" />
-            <span className="hidden md:inline">Export</span>
-          </button>
+            fullWidth={false}
+            icon={<FiDownload />}
+            variant="primary"
+          />
+          <span className="hidden md:inline">Export</span>
         </div>
       </div>
+
 
       {/* Main Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
