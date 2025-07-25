@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
+import { FiX, FiAlertCircle } from 'react-icons/fi';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   createSupervisionSchedule,
   deleteSupervisionSchedule,
   enableStudentFinalDocumentSubmission,
   fetchSupervisionSchedule,
-} from '../services/supervisionServices';
-import { useUser } from '../context/userContext';
+} from '@/services/supervisionServices';
+import { useUser } from '@/contexts/userContext';
+import Input from '@/components/ui/Input/Input';
+import Button from '@/components/ui/Button/Button';
 
 export const StudentSupervisionSchedule = ({ student, onClose }) => {
   const [date, setDate] = useState('');
@@ -141,24 +144,27 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
       <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg space-y-4">
         <div className="flex justify-between">
           <h2 className="text-xl font-semibold">Supervision Schedule</h2>
-          <button onClick={onClose} className="text-red-500 text-2xl font-bold">
-            &times;
-          </button>
+          <Button
+            onClick={onClose}
+            fullWidth={false}
+            icon={<FiX className="text-red-500 text-2xl" />}
+            variant="ghost"
+            className="p-2"
+          />
         </div>
 
         {supervisionCount >= 3 && (
-          <button
+          <Button
             onClick={() => handleEnableFinalDocs(student.id)}
             disabled={student?.canSubmitFinalDocs}
-            className={`w-full py-2 rounded mt-4 ${student?.canSubmitFinalDocs
-              ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-              : 'bg-green-600 hover:bg-green-700 text-white'
-              }`}
+            fullWidth={false}
+            className="mt-4"
+            variant={student?.canSubmitFinalDocs ? 'outline' : 'primary'}
           >
             {student?.canSubmitFinalDocs
               ? 'Final Document Submission Allowed'
               : 'Allow Final Document Submission'}
-          </button>
+          </Button>
         )}
 
         {/* Show dropdown to create new supervision */}
@@ -172,87 +178,92 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
             </button>
           </div>
         )}
-           { student?.supervisionStatus === 'IN_PROGRESS' && (
-            <div className="mt-4 p-4 border border-red-200 bg-red-50 rounded">
-              <p className="text-red-700 font-medium">
-                This student is currently undergoing supervision.
-              </p>
-              <p className="text-red-600 text-sm">
-                Please complete or delete the ongoing supervision before booking a new one.
-              </p>
-            </div>
-          )}
+        {student?.supervisionStatus === 'IN_PROGRESS' && (
+          <div className="mt-4 p-4 border border-red-200 bg-red-50 rounded">
+            <p className="text-red-700 font-medium">
+              This student is currently undergoing supervision.
+            </p>
+            <p className="text-red-600 text-sm">
+              Please complete or delete the ongoing supervision before booking a new one.
+            </p>
+          </div>
+        )}
 
         {/* Form Area */}
         {(student?.supervisionStatus !== 'IN_PROGRESS') && (supervision?.length < 1 || showForm) && (
-       
-        <div className="space-y-3 border border-blue-200 rounded p-4 mt-3">
-          <h3 className="font-semibold text-blue-600">New Supervision</h3>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {success && <p className="text-green-600 text-sm">Supervision booked successfully!</p>}
+          <div className="space-y-3 border border-blue-200 rounded p-4 mt-3">
+            <h3 className="font-semibold text-blue-600">New Supervision</h3>
 
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full border p-2 rounded"
-          />
+            {error && (
+              <div className="flex items-center gap-2 p-3 mt-2 bg-red-50 border border-red-300 text-red-700 rounded-md animate-fade-in">
+                <FiAlertCircle className="text-xl" />
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
+            {success && <p className="text-green-600 text-sm">Supervision booked successfully!</p>}
 
-          <div>
-            <p className="text-sm font-medium mb-1">Select up to 2 subjects</p>
-            <div className="flex flex-wrap gap-2">
-              {subjects.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => toggleSubject(s)}
-                  className={`px-3 py-1 rounded-full border transition text-sm ${selectedSubjects.includes(s)
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
-                    }`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
 
-          {selectedSubjects.map((s, i) => (
-            <div key={i} className="border p-3 rounded space-y-2">
-              <p className="text-sm font-semibold">{s} Timing</p>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="time"
-                  value={subjectTimes[s]?.start || ''}
-                  onChange={(e) => handleTimeChange(s, 'start', e.target.value)}
-                  className="border p-2 rounded"
-                />
-                <input
-                  type="time"
-                  value={subjectTimes[s]?.end || ''}
-                  onChange={(e) => handleTimeChange(s, 'end', e.target.value)}
-                  className="border p-2 rounded"
-                />
+            <div>
+              <p className="text-sm font-medium mb-1">Select up to 2 subjects</p>
+              <div className="flex flex-wrap gap-2">
+                {subjects.map((s, i) => (
+                  <button
+                    key={i}
+                    onClick={() => toggleSubject(s)}
+                    className={`px-3 py-1 rounded-full border transition text-sm ${selectedSubjects.includes(s)
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                      }`}
+                  >
+                    {s}
+                  </button>
+                ))}
               </div>
             </div>
-          ))}
 
-          <textarea
-            placeholder="Notes (optional)"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="w-full border p-2 rounded"
-            rows={3}
-          />
+            {selectedSubjects.map((s, i) => (
+              <div key={i} className="border p-3 rounded space-y-2">
+                <p className="text-sm font-semibold">{s} Timing</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="time"
+                    value={subjectTimes[s]?.start || ''}
+                    onChange={(e) => handleTimeChange(s, 'start', e.target.value)}
+                    className="border p-2 rounded"
+                  />
+                  <input
+                    type="time"
+                    value={subjectTimes[s]?.end || ''}
+                    onChange={(e) => handleTimeChange(s, 'end', e.target.value)}
+                    className="border p-2 rounded"
+                  />
+                </div>
+              </div>
+            ))}
 
-          <button
-            onClick={handleCreate}
-            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
-            disabled={subjects.length === 0}
-          >
-            Create Supervision
-          </button>
-        </div>
+            <textarea
+              placeholder="Notes (optional)"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full border p-2 rounded"
+              rows={3}
+            />
+
+            <button
+              onClick={handleCreate}
+              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+              disabled={subjects.length === 0}
+            >
+              Create Supervision
+            </button>
+          </div>
         )}
 
         {/* Existing Supervisions */}
