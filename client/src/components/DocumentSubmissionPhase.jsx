@@ -1,6 +1,7 @@
 import React from 'react';
 import { FiAlertCircle, FiCheckCircle, FiUpload } from 'react-icons/fi';
-import LoadingComponent from './LoadingComponent';
+import LoadingComponent from '@/components/LoadingComponent';
+import Button from '@/components/ui/Button/Button';
 
 export const DocumentSubmissionPhase = ({ documentStatus, isLoading, isError, error, handleUpload }) => {
   if (isLoading) {
@@ -29,13 +30,13 @@ export const DocumentSubmissionPhase = ({ documentStatus, isLoading, isError, er
           Action Required
         </h3>
         <p>Please submit your school documents and TP acceptance letter to begin the process.</p>
-        <button 
+        <Button
           onClick={() => handleUpload('school-documents')}
-          className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+          variant="primary"
         >
           <FiUpload className="mr-2" />
           Upload School Documents
-        </button>
+        </Button>
       </div>
     );
   }
@@ -70,13 +71,14 @@ export const DocumentSubmissionPhase = ({ documentStatus, isLoading, isError, er
             Documents Rejected
           </h3>
           <p>Your submitted documents were rejected. Please re-upload them for verification.</p>
-          <button 
+          <Button
+            fullWidth={false}
             onClick={() => handleUpload('school-documents')}
-            className="mt-3 bg-red-600 text-white px-4 py-2 rounded-md flex items-center"
+            variant="danger"
           >
             <FiUpload className="mr-2" />
             Re-upload Documents
-          </button>
+          </Button>
         </div>
       );
     default:
