@@ -5,7 +5,8 @@ import {
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import { getStudentById, updateStudentStatusById } from '../services/studentServices';
+import { getStudentById, updateStudentStatusById } from '@/services/studentServices';
+import LoadingComponent from '@/components/LoadingComponent';
 
 export const StudentProfile = ({ onClose }) => {
   const { studentId } = useParams();
@@ -39,7 +40,7 @@ export const StudentProfile = ({ onClose }) => {
 
   const getInitials = (fullName) => fullName.split(' ').map(n => n[0]).join('').toUpperCase();
 
-  if (isLoading || !student) return <div className="p-4">Loading student...</div>;
+  if (isLoading || !student) return <LoadingComponent message="Loading student profile..." />;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-2">

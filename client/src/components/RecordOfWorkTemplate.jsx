@@ -1,42 +1,31 @@
+import React from 'react';
+import Input from '@/components/ui/Input/Input';
 const RecordOfWorkTemplate = ({ formData, setFormData }) => {
 
   const handleRecordChange = (index, field, value) => {
-  const updatedRecords = [...formData.records];
-  updatedRecords[index][field] = value;
-  setFormData({ ...formData, records: updatedRecords });
-};
+    const updatedRecords = [...formData.records];
+    updatedRecords[index][field] = value;
+    setFormData({ ...formData, records: updatedRecords });
+  };
+  const formFields = [
+    { name: "school", placeholder: "School" },
+    { name: "learningArea", placeholder: "Learning Area" },
+    { name: "teacher", placeholder: "Teacher's Name" },
+    { name: "subject", placeholder: "Subject" },
+  ];
 
   return (
     <div className="space-y-4">
       <h2 className="text-center text-lg font-bold">Record of Work</h2>
-      <input
-        type="text"
-        placeholder="School"
-        value={formData.school}
-        onChange={(e) => setFormData({ ...formData, school: e.target.value })}
-        className="w-full p-2 border rounded"
-      />
-      <input
-        type="text"
-        placeholder="Learning Area"
-        value={formData.learningArea}
-        onChange={(e) => setFormData({ ...formData, learningArea: e.target.value })}
-        className="w-full p-2 border rounded"
-      />
-      <input
-        type="text"
-        placeholder="Teacher's Name"
-        value={formData.teacher}
-        onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
-        className="w-full p-2 border rounded"
-      />
-      <input
-        type="text"
-        placeholder="Subject"
-        value={formData.subject}
-        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-        className="w-full p-2 border rounded"
-      />
+      {formFields.map(({ name, placeholder }) => (
+        <Input
+          key={name}
+          placeholder={placeholder}
+          value={formData[name]}
+          onChange={(e) => setFormData({ ...formData, [name]: e.target.value })}
+          className="w-full p-2 border rounded"
+        />
+      ))}
       <table className="w-full text-sm border mt-4">
         <thead>
           <tr className="bg-gray-100 text-left">
@@ -48,51 +37,51 @@ const RecordOfWorkTemplate = ({ formData, setFormData }) => {
           </tr>
         </thead>
         <tbody>
-  {formData.records.map((record, index) => (
-    <tr key={index}>
-      <td className="border p-2">
-        <input
-          type="date"
-          className="w-full"
-          value={record.date}
-          onChange={(e) => handleRecordChange(index, 'date', e.target.value)}
-        />
-      </td>
-      <td className="border p-2">
-        <input
-          type="text"
-          className="w-full"
-          value={record.week}
-          onChange={(e) => handleRecordChange(index, 'week', e.target.value)}
-        />
-      </td>
-      <td className="border p-2">
-        <input
-          type="text"
-          className="w-full"
-          value={record.workDone}
-          onChange={(e) => handleRecordChange(index, 'workDone', e.target.value)}
-        />
-      </td>
-      <td className="border p-2">
-        <input
-          type="text"
-          className="w-full"
-          value={record.reflection}
-          onChange={(e) => handleRecordChange(index, 'reflection', e.target.value)}
-        />
-      </td>
-      <td className="border p-2">
-        <input
-          type="text"
-          className="w-full"
-          value={record.signature}
-          onChange={(e) => handleRecordChange(index, 'signature', e.target.value)}
-        />
-      </td>
-    </tr>
-  ))}
-</tbody>
+          {formData.records.map((record, index) => (
+            <tr key={index}>
+              <td className="border p-2">
+                <input
+                  type="date"
+                  className="w-full"
+                  value={record.date}
+                  onChange={(e) => handleRecordChange(index, 'date', e.target.value)}
+                />
+              </td>
+              <td className="border p-2">
+                <input
+                  type="text"
+                  className="w-full"
+                  value={record.week}
+                  onChange={(e) => handleRecordChange(index, 'week', e.target.value)}
+                />
+              </td>
+              <td className="border p-2">
+                <input
+                  type="text"
+                  className="w-full"
+                  value={record.workDone}
+                  onChange={(e) => handleRecordChange(index, 'workDone', e.target.value)}
+                />
+              </td>
+              <td className="border p-2">
+                <input
+                  type="text"
+                  className="w-full"
+                  value={record.reflection}
+                  onChange={(e) => handleRecordChange(index, 'reflection', e.target.value)}
+                />
+              </td>
+              <td className="border p-2">
+                <input
+                  type="text"
+                  className="w-full"
+                  value={record.signature}
+                  onChange={(e) => handleRecordChange(index, 'signature', e.target.value)}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
 
       </table>
     </div>

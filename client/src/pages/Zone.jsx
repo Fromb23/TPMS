@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { FiHome, FiPlus, FiEdit, FiTrash2, FiSearch, FiX } from 'react-icons/fi';
-import { Layout } from '../components/Layout';
-import { Table } from '../components/Table';
-import Modal from '../components/Modal';
+import { Layout } from '@/components/Layout';
+import Button from '@/components/ui/Button/Button';
+import { Table } from '@/components/Table';
+import Modal from '@/components/Modal';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { createNewZone, fetchAllZones, updateAZone, deleteZoneById } from '../services/zoneServices';
-import { fetchAllLecturers } from '../services/lecturerServices';
+import { createNewZone, fetchAllZones, updateAZone, deleteZoneById } from '@/services/zoneServices';
+import { fetchAllLecturers } from '@/services/lecturerServices';
+import Select from '@/components/ui/Select/Select';
+import Input from '@/components/ui/Input/Input';
+import LoadingComponent from '@/components/LoadingComponent';
 
 const ZonesDashboard = () => {
   // Data
@@ -229,13 +233,38 @@ const ZonesDashboard = () => {
       Header: 'Actions',
       accessor: 'id',
       Cell: ({ value, row }) => <div className="flex space-x-2">
-        <button onClick={() => setupEdit(row.original)} className="text-blue-600 hover:text-blue-800 p-1" title="Edit"><FiEdit /></button>
-        <button onClick={() => handleZone('delete', row.original)} className="text-red-600 hover:text-red-800 p-1" title="Delete"><FiTrash2 /></button>
+        <Button
+          onClick={() => setupEdit(row.original)}
+          variant="ghost"
+          className="text-blue-600 hover:text-blue-800 p-1"
+          title="Edit"
+          fullWidth={false}
+          icon={<FiEdit />}
+        />
+
+        <Button
+          onClick={() => handleZone('delete', row.original)}
+          variant="ghost"
+          className="text-red-600 hover:text-red-800 p-1"
+          title="Delete"
+          fullWidth={false}
+          icon={<FiTrash2 />}
+        />
       </div>
     }
   ];
 
-  console.log("Counties:", counties);
+  if (isLoading || lecturersLoading) {
+    return <LoadingComponent message="Loading zones..." />;
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center text-red-600 font-semibold py-6">
+        An error occurred while fetching zones. Please try again later.
+      </div>
+    );
+  }
 
   return (
     <Layout
@@ -270,17 +299,32 @@ const ZonesDashboard = () => {
         ))}
       </div>
 
-      <div className="mb-6 flex flex-col md:flex-row md:items-center gap-4">
-        <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><FiSearch className="text-gray-400" /></div>
-          <input type="text" placeholder="Search zones..." className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:ring-blue-500 focus:border-blue-500"
-            value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        {/* Search input with icon */}
+        <div className="relative w-full md:max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FiSearch className="text-gray-400" />
+          </div>
+          <Input
+            type="text"
+            name="search"
+            placeholder="Search zones..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2"
+          />
         </div>
-        <select className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-          value={countyFilter} onChange={(e) => setCountyFilter(e.target.value)}>
-          <option value="all">All Counties</option>
-          {counties.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-        </select>
+        <Select
+          name="countyFilter"
+          value={countyFilter}
+          onChange={(e) => setCountyFilter(e.target.value)}
+          options={counties.map((c) => ({
+            label: c.name,
+            value: c.name,
+          }))}
+          fullWidth={false}
+          className="w-40"
+        />
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -320,7 +364,16 @@ const ZonesDashboard = () => {
               {formData.constituencies.map((c, i) => (
                 <span key={i} className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center">
                   {c}
-                  <button type="button" onClick={() => handleConstituency('remove', c)} className="ml-1 text-gray-500 hover:text-red-500"><FiX size={14} /></button>
+                  <Button
+                    type="button"
+                    onClick={() => handleConstituency('remove', c)}
+                    variant="ghost"
+                    fullWidth={false}
+                    className="ml-1 text-gray-500 hover:text-red-500 p-1"
+                    icon={<FiX size={14} />}
+                    title="Remove"
+                  >
+                  </Button>
                 </span>
               ))}
             </div>
@@ -336,12 +389,12 @@ const ZonesDashboard = () => {
           </div>
 
           <div className="pt-4 flex justify-end space-x-3">
-            <button type="button" onClick={() => { setShowModal(false); resetForm(); }}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
-            <button type="button" onClick={() => handleZone(currentZone ? 'update' : 'create', currentZone)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <Button fullWidth={false} type="button" onClick={() => { setShowModal(false); resetForm(); }} variant="ghost">
+              Cancel
+            </Button>
+            <Button fullWidth={false} type="button" onClick={() => handleZone(currentZone ? 'update' : 'create', currentZone)}>
               {currentZone ? 'Save Changes' : 'Create Zone'}
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

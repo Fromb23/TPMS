@@ -1,5 +1,6 @@
 import React from 'react';
 import { FiUpload } from 'react-icons/fi';
+import Button from '@/components/ui/Button/Button';
 
 const ActiveTPTasks = ({ handleUpload, disabled, recordOfWorkDisabled }) => {
   return (
@@ -8,15 +9,15 @@ const ActiveTPTasks = ({ handleUpload, disabled, recordOfWorkDisabled }) => {
       <div className="bg-white p-4 rounded-lg shadow mb-6">
         <h3 className="font-semibold text-lg mb-3">Daily Tasks</h3>
         <p className="mb-3">Submit your lesson plan for today.</p>
-        <button
+        <Button
+          fullWidth={false}
           onClick={() => handleUpload('lesson-plan')}
-          className={`px-4 py-2 rounded-md flex items-center ${disabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-            } text-white`}
+          variant="primary"
           disabled={disabled}
         >
           <FiUpload className="mr-2" />
           {disabled ? "Already Submitted" : "Submit Today's Lesson Plan"}
-        </button>
+        </Button>
 
       </div>
 
@@ -24,42 +25,43 @@ const ActiveTPTasks = ({ handleUpload, disabled, recordOfWorkDisabled }) => {
       <div className="bg-white p-4 rounded-lg shadow mb-6">
         <h3 className="font-semibold text-lg mb-3">Weekly Task: Scheme of Work</h3>
         <p className="mb-3">Ensure your schemes of work are up to date and cover the full term.</p>
-        <button
+        <Button
+          fullWidth={false}
           onClick={() => handleUpload('schemes-of-work')}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+          variant="submit"
+          icon={<FiUpload className="mr-2" />}
         >
-          <FiUpload className="mr-2" />
           Upload Scheme of Work
-        </button>
+        </Button>
       </div>
 
       {/* Timetable */}
       <div className="bg-white p-4 rounded-lg shadow mb-6">
         <h3 className="font-semibold text-lg mb-3">Your Timetable</h3>
         <p className="mb-3">Upload your weekly teaching timetable.</p>
-        <button
+        <Button
+          fullWidth={false}
           onClick={() => handleUpload('timetable')}
           className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center"
         >
           <FiUpload className="mr-2" />
           Upload Timetable
-        </button>
+        </Button>
       </div>
 
       {/* Record of Work */}
       <div className="bg-white p-4 rounded-lg shadow mb-6">
         <h3 className="font-semibold text-lg mb-3">Record of Work</h3>
         <p className="mb-3">Keep track of what you’ve taught each week.</p>
-         <button
+        <Button
+          fullWidth={false}
           onClick={() => handleUpload('record-of-work')}
-          className={`px-4 py-2 rounded-md flex items-center ${
-            recordOfWorkDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white'
-          }`}
+          variant={recordOfWorkDisabled ? "submitDisabled" : "submit"}
           disabled={recordOfWorkDisabled}
+          icon={<FiUpload className="mr-2" />}
         >
-          <FiUpload className="mr-2" />
           {recordOfWorkDisabled ? "Already Submitted" : "Submit Record of Work"}
-        </button>
+        </Button>
       </div>
     </>
   );

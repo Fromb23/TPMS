@@ -1,8 +1,9 @@
 import { FiAlertCircle, FiCheckCircle, FiInfo, FiArrowRight } from "react-icons/fi";
-import { Layout } from "./Layout";
+import { Layout } from "@/components/Layout";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import apiClient from "../api/api";
+import apiClient from "@/api/api";
+import Button from "@/components/ui/Button/Button";
 
 const TpWelcome = () => {
 	const navigate = useNavigate();
@@ -204,9 +205,13 @@ const TpWelcome = () => {
 					</div>
 				</div>
 
-				<button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center">
+				<Button
+				  fullWidth={false}
+				  onClick={handleGetStarted}
+				  variant="primary"
+				>
 					Get Started <FiArrowRight className="ml-2" />
-				</button>
+				</Button>
 			</div>
 		</Layout>
 	);

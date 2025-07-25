@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Layout } from '../components/Layout';
-import { useUser } from '../context/userContext';
+import { Layout } from '@/components/Layout';
+import { useUser } from '@/contexts/userContext';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../api/api';
+import apiClient from '@/api/api';
+import Button from '@/components/ui/Button/Button';
+import Input from '@/components/ui/Input/Input';
 
 const TpGuideline = () => {
   const navigate = useNavigate();
@@ -108,12 +110,13 @@ const TpGuideline = () => {
           <div className="space-y-3 mb-6">
             {rules.map((rule, index) => (
               <div key={index} className="border-l-4 border-blue-200 pl-4">
-                <button
+                <Button
+                  fullWidth={false}
                   onClick={() => setExpandedRule(expandedRule === index ? null : index)}
-                  className="w-full text-left font-medium text-blue-600 hover:text-blue-800 focus:outline-none"
+                  variant="ghost"
                 >
                   {index + 1}. {rule.title}
-                </button>
+                </Button>
                 {expandedRule === index && (
                   <p className="mt-1 text-gray-600 pl-4">{rule.content}</p>
                 )}
@@ -123,29 +126,32 @@ const TpGuideline = () => {
 
           {/* Agreement section */}
           {!user?.hasAgreedTerms && (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-8">
-              <label className="inline-flex items-center">
-                <input
-                  type="checkbox"
-                  checked={agreed}
-                  onChange={() => setAgreed(!agreed)}
-                  className="rounded h-5 w-5 text-blue-600"
-                />
-                <span className="ml-2 text-gray-700">
-                  I understand and agree to follow these guidelines throughout my teaching practice
-                </span>
-              </label>
-              <button
-                onClick={handleConfirm}
-                disabled={!agreed}
-                className={`px-6 py-2 rounded-md transition ${agreed
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-              >
-                Confirm My Commitment
-              </button>
-            </div>
+           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-8">
+  <label className="inline-flex items-start sm:w-3/4">
+    <Input
+      type="checkbox"
+      checked={agreed}
+      onChange={() => setAgreed(!agreed)}
+      className="rounded h-5 w-5 text-blue-600 mt-1"
+    />
+    <span className="ml-2 text-gray-700">
+      I understand and agree to follow these guidelines throughout my teaching practice
+    </span>
+  </label>
+
+  <Button
+    fullWidth={false}
+    onClick={handleConfirm}
+    disabled={!agreed}
+    className={`px-6 py-2 rounded-md transition ${
+      agreed
+        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
+        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+    }`}
+  >
+    Confirm My Commitment
+  </Button>
+</div>
           )}
 
         </div>

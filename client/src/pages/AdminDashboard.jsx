@@ -2,21 +2,23 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useQuery } from '@tanstack/react-query';
-import { Layout } from '../components/Layout';
-import { Table } from '../components/Table';
-import DocumentViewer from '../components/DocumentViewer';
+import { Layout } from '@/components/Layout';
+import { Table } from '@/components/Table';
+import DocumentViewer from '@/components/DocumentViewer';
 import {
     FiHome, FiUsers, FiUser, FiFileText, FiDownload, FiFilter,
     FiSearch, FiEye, FiLock, FiUnlock, FiMail, FiAlertTriangle,
     FiCheckCircle, FiClock, FiBook, FiCalendar, FiPieChart
 } from 'react-icons/fi';
-import { fetchAllLecturers } from '../services/lecturerServices';
-import { fetchAllStudents } from '../services/studentServices';
-import { useUser } from '../context/userContext';
-import LoadingComponent from '../components/LoadingComponent';
+import { fetchAllLecturers } from '@/services/lecturerServices';
+import { fetchAllStudents } from '@/services/studentServices';
+import { useUser } from '@/contexts/userContext';
+import LoadingComponent from '@/components/LoadingComponent';
+import { useError } from "@/contexts/ErrorContext";
 
 const AdminDashboard = () => {
     const { user, token } = useUser();
+    const { setError } = useError();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedDocument, setSelectedDocument] = useState(null);
@@ -30,6 +32,10 @@ const AdminDashboard = () => {
         queryFn: () => fetchAllStudents(token),
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
+        enabled: !!token,
+        onError: (err) => {
+            setError(err?.message || "Failed to fetch students");
+        }
     });
     const enhancedStudentData = students?.map(student => {
         const docMap = {};
@@ -110,7 +116,7 @@ const AdminDashboard = () => {
     const handleLecturerClick = (lecturer) => {
         navigate(`/admin-dashboard/lecturer/${lecturer?.user?.id}`);
     };
-    
+
     const handleViewDocuments = (student) => {
         const dashboardBase = user?.role === 'LECTURER' ? 'lecturer-dashboard' : 'admin-dashboard';
         navigate(`/${dashboardBase}/${student?.user?.id}/documents`);

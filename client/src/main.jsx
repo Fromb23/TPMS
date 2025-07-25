@@ -7,7 +7,8 @@ import './index.css'
 import App from './App.jsx'
 import { Provider } from 'react-redux';
 import store from './redux/store.js';
-import { UserProvider } from './context/userContext.jsx';
+import { ErrorProvider } from "@/contexts/ErrorContext";
+import { UserProvider } from '@/contexts/userContext.jsx';
 
 const queryClient = new QueryClient();
 
@@ -16,9 +17,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
         <HelmetProvider>
-          <UserProvider>
-            <App />
-          </UserProvider>
+          <ErrorProvider>
+            <UserProvider>
+              <App />
+            </UserProvider>
+          </ErrorProvider>
         </HelmetProvider>
       </Provider>
     </QueryClientProvider>

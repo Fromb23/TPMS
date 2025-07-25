@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { FiEdit2, FiTrash2, FiPlus, FiSearch, FiHome, FiCheckCircle, FiClock } from "react-icons/fi";
-import { Table } from "./Table";
-import { Layout } from "./Layout";
-import { Breadcrumb } from '../components/BreadCrumb';
+import { Table } from "@/components/Table";
+import { Layout } from "@/components/Layout";
+import { Breadcrumb } from '@/components/BreadCrumb';
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createSchool, fetchSchools, updateRegisteredSchool, deleteRegisteredSchool } from "../services/schoolServices";
-import { useUser } from "../context/userContext";
+import { createSchool, fetchSchools, updateRegisteredSchool, deleteRegisteredSchool } from "@/services/schoolServices";
+import { useUser } from "@/contexts/userContext";
+import Button from "@/components/ui/Button/Button";
+import Select from "@/components/ui/Select/Select";
+import Input from "@/components/ui/Input/Input";
+import Form from "@/components/ui/Form/Form";
+import LoadingComponent from "@/components/LoadingComponent";
 
 export const RegisterSchools = () => {
 	const [form, setForm] = useState({ name: "", county: "", constituency: "", address: "", contact: "", zoneId: "" });
@@ -22,6 +27,13 @@ export const RegisterSchools = () => {
 		fetchSchools();
 	}, []);
 
+	const inputFields = [
+		{ name: "name", placeholder: "School Name" },
+		{ name: "county", placeholder: "County" },
+		{ name: "constituency", placeholder: "Constituency" },
+		{ name: "contact", placeholder: "Contact" },
+		{ name: "address", placeholder: "School Address" },
+	];
 	const fetchZones = async () => {
 		try {
 			const res = await axios.get("/api/zones");
@@ -32,7 +44,7 @@ export const RegisterSchools = () => {
 		}
 	};
 
-	const { data: schools = [] } = useQuery({
+	const { data: schools = [], isLoading, isError } = useQuery({
 		queryKey: ['schools'],
 		queryFn: () => fetchSchools(token),
 		onError: (err) => {
@@ -157,6 +169,19 @@ export const RegisterSchools = () => {
 			),
 		},
 	];
+
+	if (isLoading) {
+		return <LoadingComponent message="Loading schools..." />;
+	}
+
+	if (isError) {
+		return (
+			<div className="text-center text-red-600 font-semibold py-6">
+				An error occurred while fetching schools. Please try again later.
+			</div>
+		);
+	}
+
 	return (
 		<Layout
 			title="School Management"
@@ -173,84 +198,54 @@ export const RegisterSchools = () => {
 						<FiPlus /> {isEditing ? "Edit School" : "Register New School"}
 					</h2>
 
-					{message && <div className="mb-4 text-sm font-medium text-center text-green-600">{message}</div>}
+					{message && (
+						<div className="mb-4 text-sm font-medium text-center text-green-600">
+							{message}
+						</div>
+					)}
 
-					<form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<input
-							name="name"
-							placeholder="School Name"
-							value={form.name}
-							onChange={(e) => setForm({ ...form, name: e.target.value })}
-							required
-							className={inputField}
-						/>
-						<input
-							name="county"
-							placeholder="County"
-							value={form.county}
-							onChange={(e) => setForm({ ...form, county: e.target.value })}
-							required
-							className={inputField}
-						/>
-						<input
-							name="constituency"
-							placeholder="Constituency"
-							value={form.constituency}
-							onChange={(e) => setForm({ ...form, constituency: e.target.value })}
-							required
-							className={inputField}
-						/>
-						<input
-							name="contact"
-							placeholder="Contact"
-							value={form.contact}
-							onChange={(e) => setForm({ ...form, contact: e.target.value })}
-							required
-							className={inputField}
-						/>
-						<input
-							name="School Address"
-							placeholder="address"
-							value={form.address}
-							onChange={(e) => setForm({ ...form, address: e.target.value })}
-							required
-							className={inputField}
-						/>
-						<select
+					<Form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						{inputFields.map(({ name, placeholder }) => (
+							<Input
+								key={name}
+								name={name}
+								placeholder={placeholder}
+								value={form[name]}
+								onChange={(e) => setForm({ ...form, [name]: e.target.value })}
+								required
+								className={inputField}
+							/>
+						))}
+						<Select
 							name="zoneId"
+							label="Select Zone (Optional)"
 							value={form.zoneId}
 							onChange={(e) => setForm({ ...form, zoneId: e.target.value })}
+							options={zones}
 							className={inputField}
-						>
-							<option value="">-- Select Zone (Optional) --</option>
-							{Array.isArray(zones) &&
-								zones.map((zone) => (
-									<option key={zone.id} value={zone.id}>
-										{zone.name}
-									</option>
-								))}
-						</select>
+						/>
 
 						<div className="md:col-span-2 flex gap-2">
-							<button type="submit" className={btnPrimary}>
+							<Button type="submit" variant="primary">
 								{isEditing ? "Update School" : "Register School"}
-							</button>
+							</Button>
 							{isEditing && (
-								<button type="button" onClick={resetForm} className={btnSecondary}>
+								<Button type="button" onClick={resetForm} variant="dangerOutline">
 									Cancel
-								</button>
+								</Button>
 							)}
 						</div>
-					</form>
+					</Form>
 				</div>
 
 				<div className="bg-white rounded-xl shadow-md p-6">
 					<div className="flex justify-between items-center mb-4">
 						<h2 className="text-xl font-semibold">Registered Schools</h2>
 						<div className="relative">
-							<FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-							<input
+							<FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+							<Input
 								type="text"
+								fullWidth
 								placeholder="Search schools..."
 								value={search}
 								onChange={(e) => setSearch(e.target.value)}
@@ -259,8 +254,11 @@ export const RegisterSchools = () => {
 						</div>
 					</div>
 
-					{/* fallback to empty array */}
-					<Table columns={columns} data={Array.isArray(filteredSchools) ? filteredSchools : []} pageSize={50} />
+					<Table
+						columns={columns}
+						data={Array.isArray(filteredSchools) ? filteredSchools : []}
+						pageSize={50}
+					/>
 				</div>
 
 			</div>
@@ -271,5 +269,3 @@ export const RegisterSchools = () => {
 export default RegisterSchools;
 
 const inputField = "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500";
-const btnPrimary = "flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition";
-const btnSecondary = "flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition";

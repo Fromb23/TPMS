@@ -1,14 +1,18 @@
 import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { FiUpload, FiX, FiFile, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import DocumentFileInput from './DocumentFileInput';
-import { submitSchoolDocuments } from '../services/schoolServices';
-import { submitLessonPlan } from '../services/lessonPlanServices';
-import { submitFinalTPDocument } from '../services/documentServices';
-import LessonPlanTemplate from './LessonPlanTemplate';
-import RecordOfWorkTemplate from './RecordOfWorkTemplate';
-import { submitRecordOfWork } from '../services/recordOfWorkServices';
-import { fetchSchools } from '../services/schoolServices';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import DocumentFileInput from '@/components/DocumentFileInput';
+import { submitSchoolDocuments } from '@/services/schoolServices';
+import { submitLessonPlan } from '@/services/lessonPlanServices';
+import { submitFinalTPDocument } from '@/services/documentServices';
+import LessonPlanTemplate from '@/components/LessonPlanTemplate';
+import RecordOfWorkTemplate from '@/components/RecordOfWorkTemplate';
+import { submitRecordOfWork } from '@/services/recordOfWorkServices';
+import { fetchSchools } from '@/services/schoolServices';
+import Button from '@/components/ui/Button/Button';
+import Input from '@/components/ui/Input/Input';
+import Select from '@/components/ui/Select/Select';
 
 const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, token, userId }) => {
   const queryClient = useQueryClient();
@@ -152,6 +156,14 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
     }
   };
 
+  const fields = [
+    { name: 'schoolName', label: 'School Name', placeholder: 'School Name' },
+    { name: 'schoolAddress', label: 'School Address', placeholder: 'School Address' },
+    { name: 'schoolContact', label: 'School Contact', placeholder: 'School Contact' },
+    { name: 'schoolCounty', label: 'School County', placeholder: 'School County' },
+    { name: 'subjectCombination', label: 'Subject Combination', placeholder: 'Subject Combination' },
+  ];
+
   const handleSubmit = (e) => {
     console.log("Submitting document with formData:", formData);
     e.preventDefault();
@@ -282,13 +294,14 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center border-b p-4">
           <h3 className="text-lg font-semibold">{title}</h3>
-          <button
+          <Button
+            fullWidth={false}
             onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700"
+            variant="ghost"
+            className="text-red-500"
             disabled={isUploading}
-          >
-            <FiX size={20} />
-          </button>
+            icon={<FiX size={20} />}
+          />
         </div>
 
         <div className="p-4">
@@ -303,12 +316,11 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
             <form onSubmit={handleSubmit} className="space-y-4 mb-6">
               {type === 'post-tp' && (
                 <div className="space-y-4 mb-6">
-                  <input
+                  <Input
                     type="text"
                     placeholder="Title"
                     value={formData.title || ""}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full p-2 border rounded"
                   />
                   <textarea
                     placeholder="Content / Description"
@@ -320,61 +332,28 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
               )}
               {type === "school-documents" && (
                 <div className="space-y-4 mb-6">
-                  <select
+                  <Select
                     onChange={handleSchoolSelect}
                     value={isCustomSchool ? "__custom__" : formData.schoolName || ""}
                     className="w-full p-2 border rounded"
-                  >
-                    <option value="">-- Select School --</option>
-                    {schools.map((s) => (
-                      <option key={s.id} value={s.name}>{s.name}</option>
-                    ))}
-                    <option value="__custom__">Other (Create New School)</option>
-                  </select>
-
-                  <input
-                    type="text"
-                    placeholder="School Name"
-                    value={formData.schoolName}
-                    onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
-                    className="w-full p-2 border rounded"
-                    disabled={!isCustomSchool}
-                    required
+                    options={[
+                      { value: '', label: '-- Select School --' },
+                      ...schools.map(s => ({ value: s.name, label: s.name })),
+                      { value: '__custom__', label: 'Other (Create New School)' }
+                    ]}
                   />
-                  <input
-                    type="text"
-                    placeholder="School Address"
-                    value={formData.schoolAddress}
-                    onChange={(e) => setFormData({ ...formData, schoolAddress: e.target.value })}
-                    className="w-full p-2 border rounded"
-                    disabled={!isCustomSchool}
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="School Contact"
-                    value={formData.schoolContact}
-                    onChange={(e) => setFormData({ ...formData, schoolContact: e.target.value })}
-                    className="w-full p-2 border rounded"
-                    disabled={!isCustomSchool}
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="School County"
-                    value={formData.schoolCounty}
-                    onChange={(e) => setFormData({ ...formData, schoolCounty: e.target.value })}
-                    className="w-full p-2 border rounded"
-                    disabled={!isCustomSchool}
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Subject Combination"
-                    value={formData.subjectCombination}
-                    onChange={(e) => setFormData({ ...formData, subjectCombination: e.target.value })}
-                    className="w-full p-2 border rounded"
-                  />
+                  {fields.map(({ name, label, placeholder }) => (
+                    <Input
+                      key={name}
+                      name={name}
+                      label={label}
+                      placeholder={placeholder}
+                      value={formData[name]}
+                      onChange={(e) => setFormData({ ...formData, [name]: e.target.value })}
+                      disabled={name !== 'subjectCombination' && !isCustomSchool}
+                      required={name !== 'subjectCombination'}
+                    />
+                  ))}
                 </div>
               )}
 
@@ -429,33 +408,34 @@ const DocumentUploadModal = ({ isOpen, onClose, type, onUpload, documentStatus, 
               )}
 
               <div className="border-t pt-4 flex justify-end space-x-3">
-                <button
+                <Button
+                  fullWidth={false}
                   onClick={handleClose}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  variant="danger"
                   disabled={isUploading}
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+
+                <Button
+                  fullWidth={false}
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
                   disabled={isSubmitDisabled()}
+                  variant="primary"
+                  className="flex items-center justify-center gap-2"
                 >
                   {isUploading ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
+                      <AiOutlineLoading3Quarters className="animate-spin w-4 h-4" />
                       Submitting...
                     </>
                   ) : (
                     <>
-                      <FiUpload className="mr-2" />
+                      <FiUpload className="w-4 h-4" />
                       Submit
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </form>
           )}

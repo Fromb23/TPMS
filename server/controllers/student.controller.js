@@ -129,7 +129,7 @@ export const confirmStudentWelcome = async (req, res) => {
     const student = await prisma.student.findFirst({
       where: { userId: user.id },
     });
-    
+
 
     if (!student) {
       return res.status(404).json({ error: 'Student profile not found' });
@@ -139,7 +139,7 @@ export const confirmStudentWelcome = async (req, res) => {
       where: { id: student.id },
       data: { hasSeenWelcome: true },
     });
-    
+
 
     return res.status(200).json({ message: 'Welcome confirmed successfully' });
   } catch (error) {
@@ -174,7 +174,65 @@ export const getStudentDetailsById = async (userId) => {
     supervisionCount: student.supervisionSchedule?.length || 0,
     hasSupervisorAssigned: student.supervisionSchedule?.length > 0,
     canSubmitFinalDocs: student.canSubmitFinalDocs ?? false,
-    assessmentInProgress : student?.assessmentInProgress || false,
-    assessmentRequested : student?.assessmentRequested
+    assessmentInProgress: student?.assessmentInProgress || false,
+    assessmentRequested: student?.assessmentRequested
   };
+};
+
+export const getStudentsByZone = async (req, res) => {
+  const { userId } = req.user;
+
+  try {
+    const lecturer = await prisma.lecturer.findFirst({
+      where: { userId },
+    });
+
+    if (!lecturer) {
+      return res.status(404).json({ message: "Lecturer not found" });
+    }
+
+    const zones = await prisma.zone.findMany({
+      where: { coordinatorId: lecturer.id },
+      include: {
+        schools: {
+          select: { id: true,
+            name: true },
+        },
+      },
+    });
+
+    const schoolIds = zones.flatMap(zone => zone.schools.map(s => s.id));
+    const schoolNames = zones.flatMap(zone => zone.schools.map(s => s.name));
+
+    console.log("School names in zone:", schoolNames);
+
+    const documents = await prisma.document.findMany({
+      where: {
+        schoolId: { in: schoolIds },
+        studentId: { not: null },
+      },
+      select: {
+        studentId: true,
+      },
+    });
+
+    console.log("Documents fetched:", documents);
+
+    const uniqueStudentIds = [...new Set(documents.map(doc => doc.studentId))];
+
+    const students = await prisma.student.findMany({
+      where: {
+        id: { in: uniqueStudentIds },
+      },
+      include: {
+        user: true,
+        school: true,
+      },
+    });
+
+    return res.status(200).json(students);
+  } catch (error) {
+    console.error("Error in getStudentsByZone:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 };

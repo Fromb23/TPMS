@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
-import { Layout } from '../components/Layout';
+import { Layout } from '@/components/Layout';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import apiClient from '../api/api';
-import { Breadcrumb } from '../components/BreadCrumb';
+import apiClient from '@/api/api';
+import { Breadcrumb } from '@/components/BreadCrumb';
 import { FiClock, FiEdit2, FiTrash2, FiCheckCircle } from 'react-icons/fi';
-import { useUser } from '../context/userContext';
+import { useUser } from '@/contexts/userContext';
+import LoadingComponent from '@/components/LoadingComponent';
+import Button from '@/components/ui/Button/Button';
+import Form from '@/components/ui/Form/Form';
+import Input from '@/components/ui/Input/Input';
+import { useError } from '@/contexts/ErrorContext';
 
 const formatDate = (dateString) => dateString ? new Date(dateString).toISOString().split('T')[0] : '';
 const displayDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString() : '';
 
 const TpPeriod = () => {
+  const { reportError } = useError();
   const { token } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({ startDate: '', endDate: '' });
 
-  const { data: tpPeriodData, isLoading, refetch } = useQuery({
+  const { data: tpPeriodData, isLoading, error, isError, refetch } = useQuery({
     queryKey: ['tpPeriod'],
     queryFn: async () => {
       const response = await apiClient.get('/tp-period', {
@@ -24,6 +30,8 @@ const TpPeriod = () => {
       return response.data;
     },
     enabled: !!token,
+    retry: false,
+    staleTime: 1000 * 60 * 5,
     onSuccess: (data) => {
       const period = data?.[0] || null;
       setFormData({
@@ -67,8 +75,15 @@ const TpPeriod = () => {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="flex justify-center items-center h-32">
-          <p className="text-gray-600 animate-pulse">Loading TP Period...</p>
+        <LoadingComponent message="Loading Tp period please wait" />
+      )
+    }
+    if (isError || error) {
+      reportError(error?.message || "An unknown error occurred");
+
+      return (
+        <div className="text-center text-red-600 font-medium">
+          An error occurred while loading the teaching practice period.
         </div>
       );
     }
@@ -84,15 +99,15 @@ const TpPeriod = () => {
               </p>
             </div>
             <div className="flex space-x-2">
-              <button 
-                onClick={() => setIsEditing(true)} 
+              <button
+                onClick={() => setIsEditing(true)}
                 className="p-2 text-blue-600 hover:bg-blue-100 rounded-full"
                 disabled={isSubmitting}
               >
                 <FiEdit2 />
               </button>
-              <button 
-                onClick={handleDelete} 
+              <button
+                onClick={handleDelete}
                 className="p-2 text-red-600 hover:bg-red-100 rounded-full"
                 disabled={isSubmitting}
               >
@@ -105,10 +120,10 @@ const TpPeriod = () => {
     }
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <Form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm text-gray-600 mb-1">Start Date</label>
-          <input
+          <Input
             type="date"
             name="startDate"
             value={formData.startDate}
@@ -120,7 +135,7 @@ const TpPeriod = () => {
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">End Date</label>
-          <input
+          <Input
             type="date"
             name="endDate"
             value={formData.endDate}
@@ -131,25 +146,25 @@ const TpPeriod = () => {
           />
         </div>
         <div className="flex space-x-2">
-          <button 
-            type="submit" 
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
+          <Button
+            type="submit"
+            variant="primary"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Processing...' : currentPeriod ? 'Update' : 'Save'} Period
-          </button>
+          </Button>
           {currentPeriod && (
-            <button 
-              type="button" 
-              onClick={() => setIsEditing(false)} 
-              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition disabled:opacity-50"
+            <Button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              variant="dangerOutline"
               disabled={isSubmitting}
             >
               Cancel
-            </button>
+            </Button>
           )}
         </div>
-      </form>
+      </Form>
     );
   };
 

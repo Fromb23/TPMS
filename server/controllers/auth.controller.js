@@ -64,7 +64,7 @@ export const login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required' });
+    return res.status(400).json({ message: 'Email and password are required' });
   }
 
   try {
@@ -76,12 +76,12 @@ export const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ message: 'User not found' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const token = jwt.sign({ userId: user.id }, process.env.SESSION_SECRET, { expiresIn: '1d' });
@@ -89,7 +89,7 @@ export const login = async (req, res) => {
     res.status(200).json({ message: 'Login successful', user, token });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'An error occurred while logging in' });
+    res.status(500).json({ message: 'something went wrong' });
   }
 };
 

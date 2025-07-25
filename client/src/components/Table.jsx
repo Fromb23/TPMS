@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import Button from '@/components/ui/Button/Button';
 import {
   useTable,
   useSortBy,
@@ -114,29 +115,30 @@ export const Table = ({ columns, data, pageSize = 5 }) => {
           Page <span className="font-medium">{pageIndex + 1}</span> of{' '}
           <span className="font-medium">{pageOptions.length}</span>
         </div>
-        <div className="flex space-x-2">
-          <button
+        <div className="flex justify-end space-x-2">
+          <Button
             onClick={previousPage}
             disabled={!canPreviousPage}
-            className={`px-3 py-1 rounded-md ${
-              canPreviousPage
+            fullWidth={false}
+            className={`px-3 py-1 text-sm ${canPreviousPage
                 ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
+              }`}
           >
             Previous
-          </button>
-          <button
+          </Button>
+
+          <Button
             onClick={nextPage}
             disabled={!canNextPage}
-            className={`px-3 py-1 rounded-md ${
-              canNextPage
+            fullWidth={false}
+            className={`px-3 py-1 text-sm ${canNextPage
                 ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
+              }`}
           >
             Next
-          </button>
+          </Button>
         </div>
       </div>
     </div>
