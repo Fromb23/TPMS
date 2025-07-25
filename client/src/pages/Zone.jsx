@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { FiHome, FiPlus, FiEdit, FiTrash2, FiSearch, FiX } from 'react-icons/fi';
-import { Layout } from '../components/Layout';
-import Button from '../components/ui/Button';
-import { Table } from '../components/Table';
-import Modal from '../components/Modal';
+import { Layout } from '@/components/Layout';
+import Button from '@/components/ui/Button/Button';
+import { Table } from '@/components/Table';
+import Modal from '@/components/Modal';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { createNewZone, fetchAllZones, updateAZone, deleteZoneById } from '../services/zoneServices';
-import { fetchAllLecturers } from '../services/lecturerServices';
+import { createNewZone, fetchAllZones, updateAZone, deleteZoneById } from '@/services/zoneServices';
+import { fetchAllLecturers } from '@/services/lecturerServices';
+import Select from '@/components/ui/Select/Select';
+import Input from '@/components/ui/Input/Input';
+import LoadingComponent from '@/components/LoadingComponent';
 
 const ZonesDashboard = () => {
   // Data
@@ -251,7 +254,17 @@ const ZonesDashboard = () => {
     }
   ];
 
-  console.log("Counties:", counties);
+  if (isLoading || lecturersLoading) {
+    return <LoadingComponent message="Loading zones..." />;
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center text-red-600 font-semibold py-6">
+        An error occurred while fetching zones. Please try again later.
+      </div>
+    );
+  }
 
   return (
     <Layout
@@ -286,17 +299,32 @@ const ZonesDashboard = () => {
         ))}
       </div>
 
-      <div className="mb-6 flex flex-col md:flex-row md:items-center gap-4">
-        <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><FiSearch className="text-gray-400" /></div>
-          <input type="text" placeholder="Search zones..." className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:ring-blue-500 focus:border-blue-500"
-            value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        {/* Search input with icon */}
+        <div className="relative w-full md:max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FiSearch className="text-gray-400" />
+          </div>
+          <Input
+            type="text"
+            name="search"
+            placeholder="Search zones..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2"
+          />
         </div>
-        <select className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-          value={countyFilter} onChange={(e) => setCountyFilter(e.target.value)}>
-          <option value="all">All Counties</option>
-          {counties.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-        </select>
+        <Select
+          name="countyFilter"
+          value={countyFilter}
+          onChange={(e) => setCountyFilter(e.target.value)}
+          options={counties.map((c) => ({
+            label: c.name,
+            value: c.name,
+          }))}
+          fullWidth={false}
+          className="w-40"
+        />
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
