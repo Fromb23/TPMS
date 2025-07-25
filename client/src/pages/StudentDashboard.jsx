@@ -1,27 +1,28 @@
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Layout } from '../components/Layout';
+import { Layout } from '@/components/Layout';
 import { useQuery, useIsFetching } from '@tanstack/react-query';
-import { useUser } from '../context/userContext';
-import { StatusCard, QuickAction } from '../components/UI';
-import { DocumentSubmissionPhase } from '../components/DocumentSubmissionPhase';
-import DocumentUploadModal from '../components/DocumentUploadModal';
-import TpTimeline from '../components/TpTimeline';
-import StudentSupervisionCard from '../components/StudentSupervisionCard';
-import ActiveTPTasks from '../components/ActiveTPTasks';
-import { fetchSchoolDataByStudentId, getDocumentStatusByUserId } from '../services/schoolServices';
-import { fetchSupervisionSchedule } from '../services/supervisionServices';
-import { fetchLessonPlanStatusToday } from '../services/lessonPlanServices';
-import { getFinalDocumentStatus } from '../services/documentServices';
+import { useUser } from '@/contexts/userContext';
+import { StatusCard, QuickAction } from '@/components/UI';
+import { DocumentSubmissionPhase } from '@/components/DocumentSubmissionPhase';
+import DocumentUploadModal from '@/components/DocumentUploadModal';
+import TpTimeline from '@/components/TpTimeline';
+import StudentSupervisionCard from '@/components/StudentSupervisionCard';
+import ActiveTPTasks from '@/components/ActiveTPTasks';
+import { fetchSchoolDataByStudentId, getDocumentStatusByUserId } from '@/services/schoolServices';
+import { fetchSupervisionSchedule } from '@/services/supervisionServices';
+import { fetchLessonPlanStatusToday } from '@/services/lessonPlanServices';
+import { getFinalDocumentStatus } from '@/services/documentServices';
 import {
   FiCalendar, FiBook, FiUpload, FiMessageSquare,
   FiCheckCircle, FiClock, FiAlertCircle, FiFileText,
   FiHome, FiMapPin, FiAward, FiUsers, FiFile
 } from 'react-icons/fi';
-import { fetchRecordOfWorkStatusToday } from '../services/recordOfWorkServices';
-import { getStudentById } from '../services/studentServices';
-import { getCurrentPhase } from '../services/tpPhaseService';
-import LoadingComponent from '../components/LoadingComponent';
+import { fetchRecordOfWorkStatusToday } from '@/services/recordOfWorkServices';
+import { getStudentById } from '@/services/studentServices';
+import { getCurrentPhase } from '@/services/tpPhaseService';
+import LoadingComponent from '@/components/LoadingComponent';
+import Button from '@/components/ui/Button/Button';
 
 
 const StudentDashboard = () => {
@@ -200,11 +201,13 @@ const StudentDashboard = () => {
               <FiAlertCircle className="mr-2 text-purple-600" />
               Upcoming Assessment
             </h3>
-            <button onClick={() => setShowSupervisionCard(true)}
-              className="bg-purple-600 text-white px-4 py-2 rounded-md"
+            <Button 
+            fullWidth={false}
+            onClick={() => setShowSupervisionCard(true)}
+              variant='primary'
             >
               View Assessment Details
-            </button>
+            </Button>
             {showSupervisionCard && supervisorInfo.map((session, index) => (
               <StudentSupervisionCard key={index} schedule={session} />
             ))}
@@ -219,13 +222,14 @@ const StudentDashboard = () => {
               </div>
             )}
 
-            <button
+            <Button
+            fullWidth={false}
               onClick={() => handleUpload('post-tp')}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+              variant="danger"
             >
               <FiUpload className="mr-2" />
               Submit Final TP Document
-            </button>
+            </Button>
           </div>
         );
       case 'completed':
@@ -322,18 +326,20 @@ const StudentDashboard = () => {
                     </div>
 
                     <div className="mt-3 flex gap-2">
-                      <button
-                        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                      <Button
+                        variant="primary"
+                        fullWidth={false}
                         onClick={() => handleAcceptSupervision(session.id)}
                       >
                         Accept
-                      </button>
-                      <button
-                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                      </Button>
+                      <Button
+                      variant="danger"
+                      fullWidth={false}
                         onClick={() => setRejectSessionId(session.id)}
                       >
                         Reject
-                      </button>
+                      </Button>
                     </div>
 
                     {/* Show reason input if rejection is triggered */}
@@ -346,13 +352,14 @@ const StudentDashboard = () => {
                           value={rejectionReason}
                           onChange={(e) => setRejectionReason(e.target.value)}
                         />
-                        <button
-                          className="mt-1 bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-800"
+                        <Button
+                          className="mt-1"
+                          fullWidth={false}
                           onClick={() => handleRejectSupervision(session.id)}
                           disabled={!rejectionReason.trim()}
                         >
                           Submit Rejection
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -392,7 +399,6 @@ const StudentDashboard = () => {
         </section>
       </div>
 
-      {/* Document Upload Modal */}
       <DocumentUploadModal
         token={token}
         userId={userId}
@@ -400,10 +406,7 @@ const StudentDashboard = () => {
         onClose={() => setShowUploadModal(false)}
         type={uploadType}
         onUpload={(files) => {
-          // Handle file upload logic here
-          console.log(`Uploading ${uploadType}:`, files);
           setShowUploadModal(false);
-          // Update state accordingly
         }}
       />
     </Layout>
