@@ -9,7 +9,6 @@ import LoadingComponent from '@/components/LoadingComponent';
 import Button from '@/components/ui/Button/Button';
 import Form from '@/components/ui/Form/Form';
 import Input from '@/components/ui/Input/Input';
-import ErrorToast from '@/components/ui/Error/ErrorToast';
 import { useError } from '@/contexts/ErrorContext';
 
 const formatDate = (dateString) => dateString ? new Date(dateString).toISOString().split('T')[0] : '';
