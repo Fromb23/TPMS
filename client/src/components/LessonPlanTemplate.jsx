@@ -1,61 +1,67 @@
+import React from 'react';
+import Input from '@/components/ui/Input/Input';
+import { Table } from '@/components/Table';
+
 const LessonPlanTemplate = ({ formData, setFormData }) => {
+
+  const formFields = [
+  { name: "school", placeholder: "School" },
+  { name: "learningArea", placeholder: "Learning Area" },
+  { name: "teacher", placeholder: "Teacher's Name" },
+  { name: "subject", placeholder: "Subject" },
+];
+
+const columns = [
+  { Header: "Date", accessor: "date", type: "date" },
+  { Header: "Week", accessor: "week" },
+  { Header: "Work Done", accessor: "workDone" },
+  { Header: "Reflection", accessor: "reflection" },
+  { Header: "Signature", accessor: "signature" },
+];
+
   return (
-    <div className="space-y-4">
-      <h2 className="text-center text-lg font-bold">Lesson Plan</h2>
-      <input
-        type="text"
-        placeholder="Subject"
-        value={formData.subject}
-        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-        className="w-full p-2 border rounded"
-      />
-      <input
-        type="text"
-        placeholder="Lesson Title"
-        value={formData.lessonTitle}
-        onChange={(e) => setFormData({ ...formData, lessonTitle: e.target.value })}
-        className="w-full p-2 border rounded"
-      />
-      <div className="flex space-x-4">
-        <input
-          type="time"
-          placeholder="Start Time"
-          value={formData.startTime}
-          onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="time"
-          placeholder="End Time"
-          value={formData.endTime}
-          onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      <table className="w-full text-sm border mt-4">
-        <thead>
-          <tr className="bg-gray-100 text-left">
-            <th className="p-2 border">Time Interval</th>
-            <th className="p-2 border">Activity</th>
-            <th className="p-2 border">Resources</th>
+   <div className="space-y-4">
+  <h2 className="text-center text-lg font-bold">Record of Work</h2>
+
+  {formFields.map(({ name, placeholder }) => (
+    <Input
+      key={name}
+      placeholder={placeholder}
+      value={formData[name]}
+      onChange={(e) => setFormData({ ...formData, [name]: e.target.value })}
+      className="w-full p-2 border rounded"
+    />
+  ))}
+
+  <div className="mt-4">
+    <table className="w-full text-sm border">
+      <thead>
+        <tr className="bg-gray-100 text-left">
+          {columns.map((col) => (
+            <th key={col.accessor} className="p-2 border">{col.Header}</th>
+          ))}
+        </tr>
+      </thead>
+
+      <tbody>
+        {formData.records.map((record, index) => (
+          <tr key={index}>
+            {columns.map((col) => (
+              <td key={col.accessor} className="border p-2">
+                <Input
+                  type={col.type || "text"}
+                  value={record[col.accessor]}
+                  onChange={(e) => handleRecordChange(index, col.accessor, e.target.value)}
+                  className="w-full p-1"
+                />
+              </td>
+            ))}
           </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="border p-2"><input className="w-full" type="text" /></td>
-            <td className="border p-2"><input className="w-full" type="text" /></td>
-            <td className="border p-2"><input className="w-full" type="text" /></td>
-          </tr>
-        </tbody>
-      </table>
-      <textarea
-        placeholder="Comments / Notes"
-        value={formData.comments}
-        onChange={(e) => setFormData({ ...formData, comments: e.target.value })}
-        className="w-full p-2 border rounded mt-4"
-        rows={3}
-      />
-    </div>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
   );
 };
 
