@@ -1,4 +1,4 @@
-import apiClient from "../api/api";
+import apiClient from "@/api/api";
 
 export const login = async ({ email, password }) => {
     try {
