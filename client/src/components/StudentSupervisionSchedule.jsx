@@ -10,6 +10,8 @@ import {
 import { useUser } from '@/contexts/userContext';
 import Input from '@/components/ui/Input/Input';
 import Button from '@/components/ui/Button/Button';
+import Textarea from '@/components/ui/Textarea/Textarea';
+import LoadingComponent from '@/components/LoadingComponent';
 
 export const StudentSupervisionSchedule = ({ student, onClose }) => {
   const [date, setDate] = useState('');
@@ -170,12 +172,12 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
         {/* Show dropdown to create new supervision */}
         {Array.isArray(supervision) && supervision.length > 0 && (
           <div className="border p-2 rounded bg-gray-100">
-            <button
+            <Button
               onClick={() => setShowForm((prev) => !prev)}
               className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded"
             >
               {showForm ? 'Hide Form' : 'Create New Supervision'}
-            </button>
+            </Button>
           </div>
         )}
         {student?.supervisionStatus === 'IN_PROGRESS' && (
@@ -214,8 +216,9 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
               <p className="text-sm font-medium mb-1">Select up to 2 subjects</p>
               <div className="flex flex-wrap gap-2">
                 {subjects.map((s, i) => (
-                  <button
+                  <Button
                     key={i}
+                    fullWidth={false}
                     onClick={() => toggleSubject(s)}
                     className={`px-3 py-1 rounded-full border transition text-sm ${selectedSubjects.includes(s)
                       ? 'bg-blue-600 text-white border-blue-600'
@@ -223,7 +226,7 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
                       }`}
                   >
                     {s}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -232,13 +235,13 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
               <div key={i} className="border p-3 rounded space-y-2">
                 <p className="text-sm font-semibold">{s} Timing</p>
                 <div className="grid grid-cols-2 gap-2">
-                  <input
+                  <Input
                     type="time"
                     value={subjectTimes[s]?.start || ''}
                     onChange={(e) => handleTimeChange(s, 'start', e.target.value)}
                     className="border p-2 rounded"
                   />
-                  <input
+                  <Input
                     type="time"
                     value={subjectTimes[s]?.end || ''}
                     onChange={(e) => handleTimeChange(s, 'end', e.target.value)}
@@ -248,7 +251,7 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
               </div>
             ))}
 
-            <textarea
+            <Textarea
               placeholder="Notes (optional)"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -256,19 +259,19 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
               rows={3}
             />
 
-            <button
+            <Button
               onClick={handleCreate}
               className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
               disabled={subjects.length === 0}
             >
               Create Supervision
-            </button>
+            </Button>
           </div>
         )}
 
         {/* Existing Supervisions */}
         {isLoading ? (
-          <p className="text-center text-gray-500">Loading...</p>
+            <LoadingComponent message="Loading supervisions..." />
         ) : (
           <>
             {supervision?.map((entry) => (
@@ -314,7 +317,7 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
 
                 {entry.isSupervised ? (
                   <div className="text-green-700 text-sm font-semibold">
-                    <p>Supervision Completed ✅</p>
+                    <p>Supervision Completed </p>
                     <p className="text-gray-700 font-normal">
                       By: Dr <span className="font-medium">
                         {entry.lecturer?.user?.fullName || 'Lecturer Unknown'}
@@ -323,18 +326,20 @@ export const StudentSupervisionSchedule = ({ student, onClose }) => {
                   </div>
                 ) : (
                   <div className="flex gap-2">
-                    <button
+                    <Button
+                      fullWidth={false}
                       onClick={() => deleteSupervision.mutate(entry.id)}
                       className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                     >
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      fullWidth={false}
                       onClick={() => handleEdit(entry)}
                       className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
                     >
                       Edit
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
