@@ -3,7 +3,7 @@ import { FiHome, FiPlus, FiEdit, FiTrash2, FiSearch, FiX } from 'react-icons/fi'
 import { Layout } from '@/components/Layout';
 import Button from '@/components/ui/Button/Button';
 import { Table } from '@/components/Table';
-import Modal from '@/components/Modal';
+import Modal from '@/components/ui/Modal/Modal';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { createNewZone, fetchAllZones, updateAZone, deleteZoneById } from '@/services/zoneServices';
 import { fetchAllLecturers } from '@/services/lecturerServices';
@@ -96,29 +96,6 @@ const ZonesDashboard = () => {
       setZones(allZones);
     }
   }, [allZones]);
-  // useEffect(() => {
-  //   if (!zones || zones.length === 0) return;
-
-  //   const countyMap = {};
-
-  //   zones.forEach(zone => {
-  //     const { county, schools = 0 } = zone;
-
-  //     if (!countyMap[county]) {
-  //       countyMap[county] = {
-  //         id: Object.keys(countyMap).length + 1,
-  //         name: county,
-  //         zones: 1,
-  //         schools: schools || 0,
-  //       };
-  //     } else {
-  //       countyMap[county].zones += 1;
-  //       countyMap[county].schools += schools || 0;
-  //     }
-  //   });
-
-  //   setCounties(Object.values(countyMap));
-  // }, [zones]);
 
   const handleInputChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -340,25 +317,41 @@ const ZonesDashboard = () => {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Zone Name</label>
-            <input type="text" name="name" value={formData.name} onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500" />
+            <Input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">County</label>
-            <select name="county" value={formData.county} onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
-              <option value="">Select County</option>
-              {counties.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-            </select>
+            <Select name="county" value={formData.county} onChange={handleInputChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+              options={counties.map(c => ({
+                label: c.name,
+                value: c.name,
+              }))}
+            >
+            </Select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Constituencies</label>
-            <div className="flex mb-2">
-              <input type="text" id="constituencyInput" className="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500" />
-              <button type="button" onClick={() => handleConstituency('add', document.getElementById('constituencyInput').value)}
-                className="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600">Add</button>
+            <div className="flex w-full gap-2">
+              <Input
+                type="text"
+                id="constituencyInput"
+              />
+              <Button type="button"
+                onClick={() => handleConstituency('add', document.getElementById('constituencyInput').value)}
+                fullWidth={false}
+                variant="primary"
+                className="px-3 py-2 text-sm"
+              >
+                Add
+              </Button>
             </div>
             <div className="flex flex-wrap gap-2">
               {formData.constituencies.map((c, i) => (
@@ -381,15 +374,28 @@ const ZonesDashboard = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Zone Coordinator</label>
-            <select name="coordinator" value={formData.coordinator} onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
-              <option value="">Select Coordinator</option>
-              {lecturers.map(l => <option key={l.id} value={l.id}>{l.name} ({l.email})</option>)}
-            </select>
+            <Select
+              name="coordinator"
+              value={formData.coordinator}
+              onChange={handleInputChange}
+              className="..."
+              options={lecturers.map(l => ({
+                label: l.name,
+                value: l.id,
+              }))}
+            >
+            </Select>
+
           </div>
 
           <div className="pt-4 flex justify-end space-x-3">
-            <Button fullWidth={false} type="button" onClick={() => { setShowModal(false); resetForm(); }} variant="ghost">
+            <Button 
+            fullWidth={false} 
+            type="button" 
+            onClick={() => { setShowModal(false); resetForm(); }} 
+            variant="ghost"
+            className="text-red-600 hover:bg-red-400 px-4 py-2"
+            >
               Cancel
             </Button>
             <Button fullWidth={false} type="button" onClick={() => handleZone(currentZone ? 'update' : 'create', currentZone)}>
