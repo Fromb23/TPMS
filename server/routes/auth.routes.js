@@ -8,11 +8,14 @@ const router = express.Router();
 router.post('/register', register);
 router.post('/login', login);
 router.post('/verify-email', verifyEmail);
-router.post('/reset-password', authMiddleware, resetPassword);
-router.post('/tp-guidelines/confirm', authMiddleware, confirmHasAgreedTerms);
-router.get('/tpPhase/:userId', authMiddleware, getCurrentPhase);
 
-router.get('/me', authMiddleware, (req, res) => {
+
+router.use(authMiddleware);
+router.post('/reset-password', resetPassword);
+router.post('/tp-guidelines/confirm', confirmHasAgreedTerms);
+router.get('/tpPhase/:userId', getCurrentPhase);
+
+router.get('/me', (req, res) => {
   res.json({ message: "You are authenticated", user: req.user });
 });
 
