@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import catchAsync from '../utils/catchAsync.js';
+import { BadRequestError, UnauthorizedError } from '../utils/errors.js';
 
 const prisma = new PrismaClient();
 
@@ -60,38 +62,31 @@ export const register = async (req, res) => {
 };
 
 // Login
-export const login = async (req, res) => {
+export const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required' });
+    throw new BadRequestError('Email and password are required');
   }
 
-  try {
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: {
-        student: true,
-      },
-    });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: { student: true },
+  });
 
-    if (!user) {
-      return res.status(401).json({ message: 'User not found' });
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    const token = jwt.sign({ userId: user.id }, process.env.SESSION_SECRET, { expiresIn: '1d' });
-
-    res.status(200).json({ message: 'Login successful', user, token });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'something went wrong' });
+  if (!user) {
+    throw new UnauthorizedError('Email doesn\'t exist');
   }
-};
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    throw new UnauthorizedError('Invalid email or password');
+  }
+
+  const token = jwt.sign({ userId: user.id }, process.env.SESSION_SECRET, { expiresIn: '1d' });
+
+  res.status(200).json({ message: 'Login successful', user, token });
+});
 
 // Verify Email
 export const verifyEmail = async (req, res) => {
@@ -117,7 +112,7 @@ export const verifyEmail = async (req, res) => {
 };
 
 export const resetPassword = async (req, res) => {
-  const userId  = req.user.userId;
+  const userId = req.user.userId;
   const { password } = req.body;
 
   try {
@@ -130,7 +125,7 @@ export const resetPassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await prisma.user.update({
-      where: {  id: userId },
+      where: { id: userId },
       data: { password: hashedPassword },
     });
 
