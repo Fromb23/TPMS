@@ -1,4 +1,7 @@
 import { PrismaClient } from "@prisma/client";
+import { BadRequestError, ForbiddenError } from '../utils/errors.js';
+import * as documentService from '../services/document.service.js';
+import catchAsync from '../utils/catchAsync.js';
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from 'url';
@@ -7,90 +10,32 @@ const prisma = new PrismaClient();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const createDocument = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const typeMap = ['TP_APPLICATION', 'TP_TIMETABLE', 'TP_ASSESSMENT', 'TP_RECORDS'];
+export const createDocument = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const files = req.files;
+  const schoolData = JSON.parse(req.body.schoolData);
 
-    const schoolData = JSON.parse(req.body.schoolData);
-    const files = req.files;
-
-    if (!files || files.length === 0) {
-      return res.status(400).json({ error: 'No files provided.' });
-    }
-
-    // Ensure uploads directory exists
-    const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
-
-    // Ensure directory exists
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-      console.log("Created uploads directory at:", uploadDir);
-    } else {
-      console.log("Uploads directory exists:", uploadDir);
-    }
-
-    // Save files to disk
-    files.forEach((file) => {
-      const uploadPath = path.join(uploadDir, file.originalname);
-      fs.writeFileSync(uploadPath, file.buffer);
-    });
-
-    // Find the student
-    const student = await prisma.student.findFirst({
-      where: { userId: userId }
-    });
-
-    if (!student) {
-      return res.status(403).json({ error: 'Only students can upload documents.' });
-    }
-
-    // Create school
-    const school = await prisma.school.upsert({
-      where: { name: schoolData.name },
-      update: {},
-      create: {
-        name: schoolData.name,
-        address: schoolData.address,
-        contact: schoolData.contact,
-        county: schoolData.county,
-        constituency: schoolData.constituency,
-        subjectCombination: schoolData.subjectCombination,
-      }
-    });
-
-    // Update student
-    await prisma.student.update({
-      where: { id: student.id },
-      data: {
-        schoolId: school.id,
-        subjectCombination: schoolData.subjectCombination
-      }
-    });
-
-    for (const file of files) {
-      await prisma.document.create({
-        data: {
-          name: file.originalname,
-          type: typeMap[file.fieldname] || 'TP_APPLICATION',
-          url: `${file.originalname}`,
-          student: {
-            connect: { id: student.id },
-          },
-          school: {
-            connect: { id: school.id },
-          },
-        },
-      });
-    }
-
-    return res.status(201).json({ message: 'Documents uploaded successfully' });
-
-  } catch (err) {
-    console.error('Error uploading documents:', err);
-    res.status(500).json({ error: 'Server error' });
+  if (!files || files.length === 0) {
+    throw new BadRequestError('No files provided.');
   }
-};
+
+  const uploadDir = documentService.ensureUploadDirectory();
+
+  documentService.saveFilesToDisk(files, uploadDir);
+
+  const student = await documentService.findStudentByUserId(userId);
+  if (!student) {
+    throw new ForbiddenError('Only students can upload documents.');
+  }
+
+  const school = await documentService.upsertSchool(schoolData);
+
+  await documentService.updateStudent(student.id, school.id, schoolData.subjectCombination);
+
+  await documentService.createDocuments(files, student.id, school.id);
+
+  res.status(201).json({ message: 'Documents uploaded successfully' });
+});
 
 
 export const getDocumentStatusByUserId = async (req, res) => {
