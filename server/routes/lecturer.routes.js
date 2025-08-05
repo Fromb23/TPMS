@@ -4,8 +4,9 @@ import { getLecturers,  getLecturerById, updateLecturerStatus } from '../control
 
 const router = express.Router();
 
-router.get('/', authMiddleware, getLecturers);
-router.get('/:lecturerId', authMiddleware, getLecturerById);
-router.post('/:lecturerId', authMiddleware, updateLecturerStatus);
+router.use(authMiddleware);
+router.get('/', getLecturers);
+router.get('/:lecturerId', getLecturerById);
+router.post('/:lecturerId', updateLecturerStatus);
 
 export default router;

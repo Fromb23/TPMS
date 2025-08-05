@@ -4,7 +4,8 @@ import { createStudentLessonPlan, getLessonPlanStatusToday } from '../controller
 
 const router = express.Router();
 
-router.post('/create', authMiddleware, createStudentLessonPlan);
-router.get('/check-today', authMiddleware, getLessonPlanStatusToday);
+router.use(authMiddleware);
+router.post('/create', createStudentLessonPlan);
+router.get('/check-today', getLessonPlanStatusToday);
 
 export default router;

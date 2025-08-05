@@ -9,17 +9,17 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+router.use(authMiddleware);
 router.post(
   '/create/school-documents',
-  authMiddleware,
   upload.array('files'),
   createDocument
 );
 
-router.get('/status/:userId', authMiddleware, getDocumentStatusByUserId);
-router.patch('/:documentId/status', authMiddleware, updateDocumentStatus);
-router.patch('/:documentId/final-doc-update', authMiddleware, updateFinalDocumentStatus);
-router.post('/final-tp', authMiddleware, upload.single('file'), submitFinalTPDocument);
-router.get('/final-status/:userId', authMiddleware, getFinalDocumentStatus);
+router.get('/status/:userId', getDocumentStatusByUserId);
+router.patch('/:documentId/status', updateDocumentStatus);
+router.patch('/:documentId/final-doc-update', updateFinalDocumentStatus);
+router.post('/final-tp', upload.single('file'), submitFinalTPDocument);
+router.get('/final-status/:userId', getFinalDocumentStatus);
 
 export default router;

@@ -4,9 +4,10 @@ import { createZone, getAllZones, updateAZone, deleteZone } from '../controllers
 
 const router = express.Router();
 
-router.get('/', authMiddleware, getAllZones);
-router.post('/', authMiddleware, createZone);
-router.put('/:id', authMiddleware, updateAZone);
-router.delete('/:id', authMiddleware, deleteZone);
+router.use(authMiddleware);
+router.get('/', getAllZones);
+router.post('/', createZone);
+router.put('/:id', updateAZone);
+router.delete('/:id', deleteZone);
 
 export default router;

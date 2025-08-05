@@ -4,10 +4,11 @@ import { fetchStudents, updateStudentStatusById, fetchStudentById, confirmStuden
 
 const router = express.Router();
 
-router.get('/', authMiddleware, fetchStudents);
-router.get('/zone', authMiddleware, getStudentsByZone);
-router.get('/:studentId', authMiddleware, fetchStudentById);
-router.put('/:id/status', authMiddleware, updateStudentStatusById);
-router.post('/confirmWelcome', authMiddleware, confirmStudentWelcome);
+router.use(authMiddleware);
+router.get('/', fetchStudents);
+router.get('/zone', getStudentsByZone);
+router.get('/:studentId', fetchStudentById);
+router.put('/:id/status', updateStudentStatusById);
+router.post('/confirmWelcome', confirmStudentWelcome);
 
 export default router;

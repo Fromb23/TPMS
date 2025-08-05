@@ -4,7 +4,8 @@ import { createTpPeriod, getTpPeriod } from '../controllers/tpPeriod.controller.
 
 const router = express.Router();
 
-router.post('/', authMiddleware, createTpPeriod);
-router.get('/', authMiddleware, getTpPeriod);
+router.use(authMiddleware);
+router.post('/', createTpPeriod);
+router.get('/', getTpPeriod);
 
 export default router;

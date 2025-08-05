@@ -4,7 +4,8 @@ import { submitRecordOfWork, getRecordOfWorkStatusToday } from '../controllers/r
 
 const router = express.Router();
 
-router.post('/create', authMiddleware, submitRecordOfWork);
-router.get('/check-today', authMiddleware, getRecordOfWorkStatusToday);
+router.use(authMiddleware);
+router.post('/create', submitRecordOfWork);
+router.get('/check-today', getRecordOfWorkStatusToday);
 
 export default router;

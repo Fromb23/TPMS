@@ -4,9 +4,10 @@ import { assignLecturerToZone } from '../controllers/lectureZone.controller.js';
 
 const router = express.Router();
 
-router.post('/create', authMiddleware, assignLecturerToZone);
-// router.get('/all', authMiddleware, getAllLecturersInZone);
-// router.put('/update/:id', authMiddleware, updateLecturerInZone);
-// router.delete('/delete/:id', authMiddleware, deleteLecturerFromZone);
+router.use(authMiddleware);
+router.post('/create', assignLecturerToZone);
+// router.get('/all', getAllLecturersInZone);
+// router.put('/update/:id', updateLecturerInZone);
+// router.delete('/delete/:id', deleteLecturerFromZone);
 
 export default router;

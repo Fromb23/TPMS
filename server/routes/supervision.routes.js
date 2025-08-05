@@ -4,9 +4,10 @@ import { createSupervisionSchedule, getSupervisionScheduleByStudent, confirmStud
 
 const router = express.Router();
 
-router.post('/', authMiddleware, createSupervisionSchedule);
-router.get('/:studentUserId', authMiddleware, getSupervisionScheduleByStudent);
-router.patch('/:supervisionId/confirm', authMiddleware, confirmStudentSupervision);
-router.patch('/:studentId/enable-final-docs', authMiddleware, enableStudentSubmitFinalDocument);
+router.use(authMiddleware);
+router.post('/', createSupervisionSchedule);
+router.get('/:studentUserId', getSupervisionScheduleByStudent);
+router.patch('/:supervisionId/confirm', confirmStudentSupervision);
+router.patch('/:studentId/enable-final-docs', enableStudentSubmitFinalDocument);
 
 export default router;

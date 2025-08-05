@@ -4,10 +4,11 @@ import { getSchoolDataByStudentId, createSchool, fetchAllSchools, updateRegister
 
 const router = express.Router();
 
-router.get('/', authMiddleware, fetchAllSchools);
-router.post('/', authMiddleware, createSchool);
-router.get('/:userId', authMiddleware, getSchoolDataByStudentId);
-router.put('/:schoolId', authMiddleware, updateRegisteredSchool);
-router.delete('/:schoolId', authMiddleware, deleteRegisteredSchool);
+router.use(authMiddleware);
+router.get('/', fetchAllSchools);
+router.post('/', createSchool);
+router.get('/:userId', getSchoolDataByStudentId);
+router.put('/:schoolId', updateRegisteredSchool);
+router.delete('/:schoolId', deleteRegisteredSchool);
 
 export default router;
